@@ -9,37 +9,42 @@ import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 
 const BACKEND_URL =
-  process.env.EXPO_PUBLIC_API_URL ?? 'https://medsync-ai-backend.onrender.com';
+  process.env.EXPO_PUBLIC_API_URL ?? 'https://medsync-ai-3.onrender.com';
 
 export default function SplashScreen() {
   const [status, setStatus] = useState<'checking' | 'awake' | 'error'>('checking');
+  const [attempt, setAttempt] = useState(0);
+  const [maxAttempts] = useState(10);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
-    let attempts = 0;
 
     const checkServer = async () => {
-      attempts += 1;
+      setAttempt((prev) => prev + 1);
+
       try {
         const response = await fetch(`${BACKEND_URL}/api/health`, {
-          signal: AbortSignal.timeout(8000),
+          signal: AbortSignal.timeout(10000),
         });
         if (response.ok) {
           setStatus('awake');
+          // Espera 1 segundo extra para asegurar que el servidor esté listo
+          timer = setTimeout(() => {
+            router.replace('/auth');
+          }, 1000);
           return;
         }
       } catch {
-        // Servidor probablemente dormido
+        // Servidor probablemente dormido (plan gratuito de Render)
       }
 
-      if (attempts >= 3) {
+      if (attempt >= maxAttempts) {
         setStatus('error');
         setError('El servidor tarda en despertar. Intenta de nuevo.');
         return;
       }
 
-      setStatus('checking');
       timer = setTimeout(checkServer, 5000);
     };
 
@@ -48,16 +53,15 @@ export default function SplashScreen() {
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, []);
-
-  const goToAuth = () => {
-    router.replace('/auth');
-  };
+  }, [attempt, maxAttempts]);
 
   const retry = () => {
     setStatus('checking');
+    setAttempt(0);
     setError(null);
   };
+
+  const progress = Math.min((attempt / maxAttempts) * 100, 100);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -68,8 +72,19 @@ export default function SplashScreen() {
         </View>
 
         {status === 'checking' && (
-          <AppText variant="body" color={colors.inkSoft} style={styles.text}>
-            Despertando servidor…
+          <>
+            <AppText variant="body" color={colors.inkSoft} style={styles.text}>
+              Despertando servidor…
+            </AppText>
+            <AppText variant="caption" color={colors.inkMuted} style={styles.subtext}>
+              Intento {attempt} de {maxAttempts} · puede tardar hasta 60 segundos
+            </AppText>
+          </>
+        )}
+
+        {status === 'awake' && (
+          <AppText variant="body" color={colors.success} style={styles.text}>
+            Servidor listo. Conectando…
           </AppText>
         )}
 
@@ -87,12 +102,6 @@ export default function SplashScreen() {
             />
           </View>
         )}
-
-        {status === 'awake' && (
-          <AppText variant="body" color={colors.success} style={styles.text}>
-            Servidor listo. Conectando…
-          </AppText>
-        )}
       </View>
     </SafeAreaView>
   );
@@ -108,6 +117,7 @@ const styles = StyleSheet.create({
   },
   spinner: { marginVertical: 24 },
   text: { marginTop: 16, textAlign: 'center', lineHeight: 20 },
+  subtext: { marginTop: 8, textAlign: 'center', lineHeight: 18 },
   errorContainer: {
     marginTop: 24,
     alignItems: 'center',
