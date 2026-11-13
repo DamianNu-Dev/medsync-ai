@@ -5,7 +5,7 @@ export const AI_CONFIG = {
   apiKey: process.env.EXPO_PUBLIC_AI_API_KEY ?? '',
   model: process.env.EXPO_PUBLIC_AI_MODEL ?? 'qwen/qwen3.8-27b',
   visionModel:
-    process.env.EXPO_PUBLIC_AI_VISION_MODEL ?? 'qwen/qwen-vl',
+    process.env.EXPO_PUBLIC_AI_VISION_MODEL ?? 'qwen/qwen3.8-27b',
 } as const;
 
 export const isAIConfigured = AI_CONFIG.apiKey.trim().length > 0;

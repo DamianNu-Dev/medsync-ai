@@ -36,7 +36,7 @@ const PRESETS: Preset[] = [
     label: 'Groq',
     baseUrl: 'https://api.groq.com/openai/v1',
     model: 'qwen/qwen3.8-27b',
-    visionModel: 'qwen/qwen-vl',
+    visionModel: 'qwen/qwen3.8-27b',
   },
   {
     id: 'openai',
