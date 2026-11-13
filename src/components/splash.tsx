@@ -15,7 +15,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
   const [status, setStatus] = useState<'checking' | 'awake' | 'error'>('checking');
   const [error, setError] = useState<string | null>(null);
   const attemptRef = useRef(0);
-  const maxAttempts = 12;
+  const maxAttempts = 20;
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showRetry, setShowRetry] = useState(false);
 
@@ -25,18 +25,30 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
     };
   }, []);
 
+  const timeoutPromise = (ms: number) =>
+    new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+  const fetchWithTimeout = async (url: string, ms: number) => {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), ms);
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+      return response;
+    } finally {
+      clearTimeout(id);
+    }
+  };
+
   const checkServer = async () => {
     attemptRef.current += 1;
 
     try {
-      const response = await fetch(`${BACKEND_URL}/api/health`, {
-        signal: AbortSignal.timeout(10000),
-      });
+      const response = await fetchWithTimeout(`${BACKEND_URL}/api/health`, 15000);
       if (response.ok) {
         setStatus('awake');
         timerRef.current = setTimeout(() => {
           onComplete();
-        }, 1000);
+        }, 1500);
         return;
       }
     } catch {
@@ -54,7 +66,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
   };
 
   useEffect(() => {
-    checkServer();
+    void checkServer();
   }, []);
 
   const retry = () => {
@@ -84,7 +96,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
             </AppText>
             <AppText variant="caption" color={colors.inkMuted} style={styles.subtext}>
               Intento {attemptRef.current} de {maxAttempts} ·
-              puede tardar hasta 60 segundos
+              puede tardar hasta 2 minutos
             </AppText>
           </>
         )}
@@ -102,7 +114,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
             </AppText>
             <View style={styles.buttonRow}>
               <Button
-                label="Intentar de nuevo"
+                label="Forzar reconexión"
                 icon="refresh-outline"
                 variant="outline"
                 size="md"
