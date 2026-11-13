@@ -1,0 +1,45 @@
+{
+  "herramienta": "REA (rea-agents)",
+  "version": "6.9.0",
+  "comando": "rea analyze-javascript-application /tmp/opencode/rea-sample --json",
+  "runtime": "Node.js 24.22.1",
+  "objetivo": "Chunk de la ruta /treatments del bundle web de MedSync AI",
+  "salida": "exit 0",
+  "evidence_id": "ev_1b97956a6f06218c366f2fcf2b9eb76098ea2f88fbccb84e1292a4f58ccf6062",
+  "provider": {
+    "id": "rea-javascript-application",
+    "name": "REA JavaScript application analyzer",
+    "version": "1"
+  },
+  "subject": {
+    "name": "rea-sample",
+    "format": "directory",
+    "sha256": "6593c68542c94a19e05ef86e5d11d0f0924cfe4d51c163ee6fadb8111ce4320f"
+  },
+  "grafo": {
+    "nodos": 5,
+    "aristas": 5,
+    "tipos_de_nodo": [
+      "javascript-module",
+      "electron-renderer",
+      "artifact",
+      "javascript-asset"
+    ]
+  },
+  "resumen": {
+    "browser_windows": 0,
+    "preload_entrypoints": 0,
+    "context_bridge_apis": 0,
+    "exposed_api_members": 0,
+    "ipc_operations": 0,
+    "native_addon_bindings": 0,
+    "protocol_registrations": 0,
+    "v8_cached_data_compilations": 0
+  },
+  "limitaciones": [
+    "El análisis es estático: no ejecuta el bundle ni prueba comportamiento en runtime.",
+    "Las rutas y relaciones dinámicas pueden quedar sin resolver.",
+    "El bundle completo de Expo (entry de 1.1 MB) superó el tiempo límite de 300 s; el chunk de una ruta sí se analizó por completo.",
+    "No se analizaron binarios nativos ni APKs: este entorno no tiene Hopper, Ghidra, IDA ni JADX configurados."
+  ]
+}

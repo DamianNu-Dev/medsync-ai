@@ -1,0 +1,1701 @@
+{
+  "version": 1,
+  "users": [
+    {
+      "id": "usr_96cb5c6fcd34d78a",
+      "name": "Rosa Martínez",
+      "email": "rosa@medsync.app",
+      "role": "patient",
+      "patientCode": "MED-4821",
+      "linkedPatientId": null,
+      "passwordSalt": "c7e9b5a75540e95b57236a71564006ef",
+      "passwordHash": "23f4f0cba55aa688aa91922533bd487f401de52d40ce25b93b9d53969d90ea2bf6ea0cd4d220bd0fd946fb0cd520b29b6d20a1c6d6a0b61fa5585f7d6258d2c9",
+      "state": {
+        "version": 1,
+        "role": "patient",
+        "roleChosen": true,
+        "linkedPatientCode": null,
+        "alarmEnabled": true,
+        "profile": {
+          "name": "Rosa Martínez",
+          "firstName": "Rosa",
+          "caregiverName": "Diego Martínez",
+          "caregiverCode": "MED-4821",
+          "phone": "+52 55 1234 5678"
+        },
+        "treatments": [
+          {
+            "id": "trt_447a1db6168d51ef",
+            "active": true,
+            "createdAt": "2026-10-24T03:10:00.000Z",
+            "name": "Metformina",
+            "strength": "850 mg",
+            "form": "tablet",
+            "unitsPerDose": 1,
+            "frequencyHours": 12,
+            "startDate": "2026-11-09",
+            "startTime": "22:28",
+            "durationDays": 30,
+            "totalPills": 60,
+            "pillsRemaining": 3,
+            "lowStockThreshold": 5,
+            "color": "#0B6B57",
+            "notes": "Tomar con el desayuno y la cena. Puede causar molestia estomacal al inicio."
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c",
+            "active": true,
+            "createdAt": "2026-10-24T03:10:00.000Z",
+            "name": "Enalapril",
+            "strength": "10 mg",
+            "form": "tablet",
+            "unitsPerDose": 1,
+            "frequencyHours": 24,
+            "startDate": "2026-11-12",
+            "startTime": "23:10",
+            "durationDays": 30,
+            "totalPills": 30,
+            "pillsRemaining": 21,
+            "lowStockThreshold": 5,
+            "color": "#1F5C8B",
+            "notes": "Controlar la presión arterial cada semana."
+          },
+          {
+            "id": "trt_b7c3be0b97763986",
+            "active": true,
+            "createdAt": "2026-10-24T03:10:00.000Z",
+            "name": "Atorvastatina",
+            "strength": "20 mg",
+            "form": "tablet",
+            "unitsPerDose": 1,
+            "frequencyHours": 24,
+            "startDate": "2026-11-13",
+            "startTime": "02:10",
+            "durationDays": 30,
+            "totalPills": 30,
+            "pillsRemaining": 18,
+            "lowStockThreshold": 5,
+            "color": "#6B4AA0",
+            "notes": "Tomar por la noche."
+          },
+          {
+            "id": "trt_a970bec253110124",
+            "active": true,
+            "createdAt": "2026-10-24T03:10:00.000Z",
+            "name": "Vitamina D",
+            "strength": "2000 UI",
+            "form": "capsule",
+            "unitsPerDose": 1,
+            "frequencyHours": 24,
+            "startDate": "2026-11-10",
+            "startTime": "21:10",
+            "durationDays": 30,
+            "totalPills": 30,
+            "pillsRemaining": 9,
+            "lowStockThreshold": 5,
+            "color": "#8A4F00",
+            "notes": "Tomar después del almuerzo."
+          }
+        ],
+        "doses": [
+          {
+            "id": "trt_447a1db6168d51ef_d0",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-10T02:28:00.000Z",
+            "status": "taken",
+            "takenAt": "2026-11-10T02:32:00.000Z",
+            "resolvedAt": "2026-11-10T02:32:00.000Z"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d1",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-10T14:28:00.000Z",
+            "status": "taken",
+            "takenAt": "2026-11-10T14:32:00.000Z",
+            "resolvedAt": "2026-11-10T14:32:00.000Z"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d2",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-11T02:28:00.000Z",
+            "status": "taken",
+            "takenAt": "2026-11-11T02:32:00.000Z",
+            "resolvedAt": "2026-11-11T02:32:00.000Z"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d3",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-11T14:28:00.000Z",
+            "status": "skipped",
+            "skipReason": "Me sentí mal",
+            "resolvedAt": "2026-11-11T14:36:00.000Z"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d4",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-12T02:28:00.000Z",
+            "status": "skipped",
+            "skipReason": "Me sentí mal",
+            "resolvedAt": "2026-11-12T02:36:00.000Z"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d5",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-12T14:28:00.000Z",
+            "status": "taken",
+            "takenAt": "2026-11-12T14:32:00.000Z",
+            "resolvedAt": "2026-11-12T14:32:00.000Z"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d6",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-13T02:28:00.000Z",
+            "status": "taken",
+            "takenAt": "2026-11-13T03:34:03.516Z",
+            "resolvedAt": "2026-11-13T03:34:03.516Z"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d7",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-13T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d8",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-14T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d9",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-14T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d10",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-15T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d11",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-15T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d12",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-16T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d13",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-16T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d14",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-17T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d15",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-17T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d16",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-18T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d17",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-18T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d18",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-19T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d19",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-19T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d20",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-20T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d21",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-20T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d22",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-21T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d23",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-21T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d24",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-22T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d25",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-22T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d26",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-23T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d27",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-23T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d28",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-24T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d29",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-24T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d30",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-25T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d31",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-25T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d32",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-26T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d33",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-26T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d34",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-27T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d35",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-27T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d36",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-28T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d37",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-28T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d38",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-29T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d39",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-29T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d40",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-30T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d41",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-11-30T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d42",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-12-01T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d43",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-12-01T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d44",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-12-02T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d45",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-12-02T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d46",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-12-03T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d47",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-12-03T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d48",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-12-04T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d49",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-12-04T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d50",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-12-05T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d51",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-12-05T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d52",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-12-06T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d53",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-12-06T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d54",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-12-07T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d55",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-12-07T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d56",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-12-08T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d57",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-12-08T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d58",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-12-09T02:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_447a1db6168d51ef_d59",
+            "treatmentId": "trt_447a1db6168d51ef",
+            "scheduledAt": "2026-12-09T14:28:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d0",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-11-13T03:10:00.000Z",
+            "status": "taken",
+            "takenAt": "2026-11-13T03:34:10.012Z",
+            "resolvedAt": "2026-11-13T03:34:10.012Z"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d1",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-11-14T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d2",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-11-15T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d3",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-11-16T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d4",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-11-17T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d5",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-11-18T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d6",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-11-19T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d7",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-11-20T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d8",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-11-21T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d9",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-11-22T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d10",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-11-23T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d11",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-11-24T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d12",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-11-25T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d13",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-11-26T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d14",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-11-27T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d15",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-11-28T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d16",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-11-29T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d17",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-11-30T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d18",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-12-01T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d19",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-12-02T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d20",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-12-03T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d21",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-12-04T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d22",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-12-05T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d23",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-12-06T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d24",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-12-07T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d25",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-12-08T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d26",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-12-09T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d27",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-12-10T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d28",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-12-11T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_af95a4eff1c7d04c_d29",
+            "treatmentId": "trt_af95a4eff1c7d04c",
+            "scheduledAt": "2026-12-12T03:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d0",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-11-13T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d1",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-11-14T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d2",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-11-15T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d3",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-11-16T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d4",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-11-17T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d5",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-11-18T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d6",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-11-19T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d7",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-11-20T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d8",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-11-21T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d9",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-11-22T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d10",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-11-23T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d11",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-11-24T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d12",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-11-25T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d13",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-11-26T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d14",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-11-27T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d15",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-11-28T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d16",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-11-29T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d17",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-11-30T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d18",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-12-01T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d19",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-12-02T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d20",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-12-03T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d21",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-12-04T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d22",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-12-05T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d23",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-12-06T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d24",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-12-07T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d25",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-12-08T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d26",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-12-09T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d27",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-12-10T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d28",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-12-11T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_b7c3be0b97763986_d29",
+            "treatmentId": "trt_b7c3be0b97763986",
+            "scheduledAt": "2026-12-12T06:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d0",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-11-11T01:10:00.000Z",
+            "status": "taken",
+            "takenAt": "2026-11-11T01:14:00.000Z",
+            "resolvedAt": "2026-11-11T01:14:00.000Z"
+          },
+          {
+            "id": "trt_a970bec253110124_d1",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-11-12T01:10:00.000Z",
+            "status": "taken",
+            "takenAt": "2026-11-12T01:14:00.000Z",
+            "resolvedAt": "2026-11-12T01:14:00.000Z"
+          },
+          {
+            "id": "trt_a970bec253110124_d2",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-11-13T01:10:00.000Z",
+            "status": "taken",
+            "takenAt": "2026-11-13T01:14:00.000Z",
+            "resolvedAt": "2026-11-13T01:14:00.000Z"
+          },
+          {
+            "id": "trt_a970bec253110124_d3",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-11-14T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d4",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-11-15T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d5",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-11-16T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d6",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-11-17T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d7",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-11-18T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d8",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-11-19T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d9",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-11-20T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d10",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-11-21T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d11",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-11-22T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d12",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-11-23T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d13",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-11-24T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d14",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-11-25T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d15",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-11-26T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d16",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-11-27T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d17",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-11-28T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d18",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-11-29T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d19",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-11-30T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d20",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-12-01T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d21",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-12-02T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d22",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-12-03T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d23",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-12-04T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d24",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-12-05T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d25",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-12-06T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d26",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-12-07T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d27",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-12-08T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d28",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-12-09T01:10:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_a970bec253110124_d29",
+            "treatmentId": "trt_a970bec253110124",
+            "scheduledAt": "2026-12-10T01:10:00.000Z",
+            "status": "pending"
+          }
+        ],
+        "messages": [
+          {
+            "id": "msg_e4afa91f0db6e5c9",
+            "role": "assistant",
+            "createdAt": "2026-11-13T03:08:34.443Z",
+            "source": "demo",
+            "content": "Hola 👋 Soy Medi, tu asistente de MedSync AI. Puedo ayudarte a entender tus tomas, tu inventario y qué hacer si olvidaste una dosis. ¿En qué te ayudo hoy?"
+          },
+          {
+            "id": "msg_mwefb10o_avv8",
+            "role": "user",
+            "content": "¿Puedo tomarlo con comida?",
+            "createdAt": "2026-11-13T03:34:40.104Z"
+          },
+          {
+            "id": "msg_mwefb1rn_b4tf",
+            "role": "assistant",
+            "content": "Depende del medicamento: algunos se toman con alimentos para cuidar el estómago y otros con el estómago vacío. Revisa la etiqueta o la indicación de tu receta. Si no la tienes a mano, pregunta a tu farmacéutico antes de cambiar la forma de tomarlo.",
+            "createdAt": "2026-11-13T03:34:41.075Z",
+            "source": "demo"
+          },
+          {
+            "id": "msg_mwefbkz7_ctxh",
+            "role": "user",
+            "content": "Hola , pura herencia qué puedes hacer ?",
+            "createdAt": "2026-11-13T03:35:05.971Z"
+          },
+          {
+            "id": "msg_mwefblpx_dx0v",
+            "role": "assistant",
+            "content": "Hola, Rosa. Puedo ayudarte con horarios, dosis olvidadas, inventario o dudas generales sobre tus tomas. ¿Qué te gustaría revisar?",
+            "createdAt": "2026-11-13T03:35:06.933Z",
+            "source": "demo"
+          }
+        ],
+        "scanDraft": null,
+        "lastSyncAt": "2026-11-13T03:35:07.334Z",
+        "toast": null
+      },
+      "createdAt": "2026-11-13T03:08:34.441Z",
+      "updatedAt": "2026-11-13T03:35:07.335Z"
+    },
+    {
+      "id": "usr_eaad59c226452b13",
+      "name": "Diego Martínez",
+      "email": "diego@medsync.app",
+      "role": "caregiver",
+      "patientCode": null,
+      "linkedPatientId": "usr_96cb5c6fcd34d78a",
+      "passwordSalt": "b6007da64aa093a2c09ae0a79c5a7174",
+      "passwordHash": "eadefd586dc517b60479b95c5f8c1faaedd8a311f2ab61150a7850aeff212daaea9e78a830aa264ee71af5a5db7437c7538654656700d621373fdff00db8c73b",
+      "state": null,
+      "createdAt": "2026-11-13T03:08:34.441Z",
+      "updatedAt": "2026-11-13T03:08:34.441Z"
+    },
+    {
+      "id": "usr_6c00ba084604fb09",
+      "name": "Isaac Nuñez",
+      "email": "damiantaco41@gmail.com",
+      "role": "caregiver",
+      "patientCode": null,
+      "linkedPatientId": null,
+      "passwordSalt": "14a7ab0b30562e3c0f00ebc03e251385",
+      "passwordHash": "b2eea0bc8095989689f197f841b6d2f508826fc51c7b63d32321c1ed1e70a8f62335bd482529244ef8b160a3feb42ec871bb0fe496a1d01c201a60570bf1aba8",
+      "state": null,
+      "createdAt": "2026-11-13T04:57:34.865Z",
+      "updatedAt": "2026-11-13T04:57:34.865Z"
+    },
+    {
+      "id": "usr_8434c5a733544642",
+      "name": "Jsksks",
+      "email": "bsjwjsistw6jj@gmail.com",
+      "role": "patient",
+      "patientCode": "MED-4973",
+      "linkedPatientId": null,
+      "passwordSalt": "71df86db6254eb09c645d0d043df6748",
+      "passwordHash": "f791ba62c7255b5bad0577f3562844b5d6261ffab7584e65eea473cbeea1d51da7ed4d64f7d6e3a6638a9340a624f3ec3c41058229915bcef1abebd431760e46",
+      "state": {
+        "version": 1,
+        "role": "patient",
+        "roleChosen": true,
+        "linkedPatientCode": null,
+        "alarmEnabled": true,
+        "profile": {
+          "name": "Jsksks",
+          "firstName": "Jsksks",
+          "caregiverName": "Tu cuidador",
+          "caregiverCode": "MED-4973",
+          "phone": "+52 55 1234 5678"
+        },
+        "treatments": [],
+        "doses": [],
+        "messages": [
+          {
+            "id": "msg_cfc06125eccc77d9",
+            "role": "assistant",
+            "createdAt": "2026-11-13T05:06:35.128Z",
+            "source": "demo",
+            "content": "Hola 👋 Soy Medi, tu asistente de MedSync AI. Puedo ayudarte a entender tus tomas, tu inventario y qué hacer si olvidaste una dosis. ¿En qué te ayudo hoy?"
+          }
+        ],
+        "scanDraft": null,
+        "lastSyncAt": "2026-11-13T05:06:35.128Z",
+        "toast": null
+      },
+      "createdAt": "2026-11-13T05:06:35.119Z",
+      "updatedAt": "2026-11-13T05:06:35.119Z"
+    },
+    {
+      "id": "usr_c629333d211e2aad",
+      "name": "Isaac Nuñez",
+      "email": "jsnsjs@gmail.com",
+      "role": "caregiver",
+      "patientCode": null,
+      "linkedPatientId": null,
+      "passwordSalt": "5261403f7986258a2794684465393a9e",
+      "passwordHash": "10b4e905cf5625b1aa2b32016605bbc57d40c71a1d9938ebb156157d281ce6fcc94cd9a13d465dfaa2f98b9f6e8d7c9cc6c46f166147872d8afd774064854e86",
+      "state": null,
+      "createdAt": "2026-11-13T05:26:56.437Z",
+      "updatedAt": "2026-11-13T05:26:56.437Z"
+    },
+    {
+      "id": "usr_4b6a54455fd147eb",
+      "name": "Jsjsjs",
+      "email": "jejeneb@gmail.com",
+      "role": "patient",
+      "patientCode": "MED-9415",
+      "linkedPatientId": null,
+      "passwordSalt": "bbb771896499ac4c666def8e10b25427",
+      "passwordHash": "41de9d5c139a7d1a238110d9b14ba552ed807a300ec156dbf5aa34e4d92309310484bf9fc79c2a5db36590112618152e0ca03a5d29aedd71cd3ab16608b99b76",
+      "state": {
+        "version": 1,
+        "role": "patient",
+        "roleChosen": true,
+        "linkedPatientCode": null,
+        "alarmEnabled": true,
+        "profile": {
+          "name": "Jsjsjs",
+          "firstName": "Jsjsjs",
+          "caregiverName": "Tu cuidador",
+          "caregiverCode": "MED-9415",
+          "phone": "+52 55 1234 5678"
+        },
+        "treatments": [
+          {
+            "id": "trt_mwejgibo_qq9w",
+            "name": "Metamorfina",
+            "strength": "500mg",
+            "form": "tablet",
+            "unitsPerDose": 1,
+            "frequencyHours": 12,
+            "startDate": "2026-11-13",
+            "startTime": "01:00",
+            "durationDays": 30,
+            "totalPills": 60,
+            "pillsRemaining": 60,
+            "lowStockThreshold": 5,
+            "color": "#0B6B57",
+            "active": true,
+            "createdAt": "2026-11-13T05:30:54.276Z"
+          }
+        ],
+        "doses": [
+          {
+            "id": "trt_mwejgibo_qq9w_d0",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-13T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d1",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-13T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d2",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-14T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d3",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-14T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d4",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-15T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d5",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-15T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d6",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-16T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d7",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-16T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d8",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-17T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d9",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-17T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d10",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-18T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d11",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-18T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d12",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-19T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d13",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-19T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d14",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-20T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d15",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-20T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d16",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-21T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d17",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-21T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d18",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-22T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d19",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-22T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d20",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-23T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d21",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-23T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d22",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-24T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d23",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-24T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d24",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-25T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d25",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-25T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d26",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-26T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d27",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-26T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d28",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-27T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d29",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-27T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d30",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-28T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d31",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-28T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d32",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-29T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d33",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-29T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d34",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-30T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d35",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-11-30T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d36",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-12-01T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d37",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-12-01T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d38",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-12-02T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d39",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-12-02T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d40",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-12-03T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d41",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-12-03T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d42",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-12-04T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d43",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-12-04T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d44",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-12-05T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d45",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-12-05T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d46",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-12-06T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d47",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-12-06T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d48",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-12-07T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d49",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-12-07T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d50",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-12-08T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d51",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-12-08T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d52",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-12-09T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d53",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-12-09T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d54",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-12-10T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d55",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-12-10T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d56",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-12-11T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d57",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-12-11T18:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d58",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-12-12T06:00:00.000Z",
+            "status": "pending"
+          },
+          {
+            "id": "trt_mwejgibo_qq9w_d59",
+            "treatmentId": "trt_mwejgibo_qq9w",
+            "scheduledAt": "2026-12-12T18:00:00.000Z",
+            "status": "pending"
+          }
+        ],
+        "messages": [
+          {
+            "id": "msg_b27e5ddb60bc3388",
+            "role": "assistant",
+            "createdAt": "2026-11-13T05:29:41.893Z",
+            "source": "demo",
+            "content": "Hola 👋 Soy Medi, tu asistente de MedSync AI. Puedo ayudarte a entender tus tomas, tu inventario y qué hacer si olvidaste una dosis. ¿En qué te ayudo hoy?"
+          },
+          {
+            "id": "msg_mwejh7yb_sjaq",
+            "role": "user",
+            "content": "¿Qué hago si olvidé una dosis?",
+            "createdAt": "2026-11-13T05:31:27.491Z"
+          },
+          {
+            "id": "msg_mwejh8p5_tis9",
+            "role": "assistant",
+            "content": "Si te acuerdas poco después de la hora, puedes tomarla. Si ya casi toca la siguiente dosis, no dupliques: omite la olvidada y continúa con tu horario.\n\nPara Jsjsjs, la próxima toma es: Metamorfina a las 1:00 a. m.. Si tienes dudas, llama a tu médico o farmacéutico.",
+            "createdAt": "2026-11-13T05:31:28.457Z",
+            "source": "demo"
+          },
+          {
+            "id": "msg_mwejhatg_ukki",
+            "role": "user",
+            "content": "¿Cuántas pastillas me quedan?",
+            "createdAt": "2026-11-13T05:31:31.204Z"
+          },
+          {
+            "id": "msg_mwejhbkb_vim6",
+            "role": "assistant",
+            "content": "Revisé tu inventario. Metamorfina es el que está más bajo: te quedan 60 tabletas. Cuando queden menos de 5, conviene pedir reposición para no interrumpir el tratamiento.\n\nPuedes actualizar el stock desde el detalle del tratamiento.",
+            "createdAt": "2026-11-13T05:31:32.171Z",
+            "source": "demo"
+          },
+          {
+            "id": "msg_mwekeojr_6n9z",
+            "role": "user",
+            "content": "Hola que es parecíamos?",
+            "createdAt": "2026-11-13T05:57:28.647Z"
+          },
+          {
+            "id": "msg_mwekepan_7ygs",
+            "role": "assistant",
+            "content": "Hola, Jsjsjs. Puedo ayudarte con horarios, dosis olvidadas, inventario o dudas generales sobre tus tomas. ¿Qué te gustaría revisar?",
+            "createdAt": "2026-11-13T05:57:29.615Z",
+            "source": "demo"
+          },
+          {
+            "id": "msg_mwekf3it_8vg8",
+            "role": "user",
+            "content": "Sobre que es el paracetamol",
+            "createdAt": "2026-11-13T05:57:48.053Z"
+          },
+          {
+            "id": "msg_mwekf49m_94x7",
+            "role": "assistant",
+            "content": "Puedo ayudarte a revisar tus tomas de hoy, tu inventario o qué hacer si olvidaste una dosis. Según lo registrado, tu próxima toma es: Metamorfina a las 1:00 a. m..\n\nCuéntame un poco más de tu duda. Si es sobre un síntoma nuevo o intenso, lo mejor es consultar a tu médico.",
+            "createdAt": "2026-11-13T05:57:49.018Z",
+            "source": "demo"
+          },
+          {
+            "id": "msg_mwekh14k_bz3u",
+            "role": "user",
+            "content": "Hola que es el paracetamol ?",
+            "createdAt": "2026-11-13T05:59:18.260Z"
+          },
+          {
+            "id": "msg_mwekh1f5_dfw4",
+            "role": "assistant",
+            "content": "No pude conectar con la nube, así que te respondo en modo local:\n\nHola, Jsjsjs. Puedo ayudarte con horarios, dosis olvidadas, inventario o dudas generales sobre tus tomas. ¿Qué te gustaría revisar?",
+            "createdAt": "2026-11-13T05:59:18.641Z",
+            "source": "demo"
+          }
+        ],
+        "scanDraft": null,
+        "lastSyncAt": "2026-11-13T05:59:19.017Z",
+        "toast": null
+      },
+      "createdAt": "2026-11-13T05:29:41.892Z",
+      "updatedAt": "2026-11-13T05:59:19.018Z"
+    },
+    {
+      "id": "usr_38681294d68f7bd3",
+      "name": "B2bb2j2",
+      "email": "damiantac41@gmail.com",
+      "role": "caregiver",
+      "patientCode": null,
+      "linkedPatientId": null,
+      "passwordSalt": "ffce6d74fe582843ce9207d2f6c8dea6",
+      "passwordHash": "e8ddb20f90d23fd1ce79b398e4878355bf33570e8fd02461cb34459c5df0eac510f2c32fe8bd8052ee701528947a9044496c22b41220a6c9b09ec13d8fce0ca3",
+      "state": null,
+      "createdAt": "2026-11-13T05:59:56.039Z",
+      "updatedAt": "2026-11-13T05:59:56.039Z"
+    },
+    {
+      "id": "usr_ee7130278c9e0641",
+      "name": "Jsjsjd",
+      "email": "jwjwj@gmail.com",
+      "role": "patient",
+      "patientCode": "MED-2083",
+      "linkedPatientId": null,
+      "passwordSalt": "de5061bdc48ebf6a9c88b912acaf4431",
+      "passwordHash": "218c0a216181b7ee098e17f3697d65e3c37196fae21857774dceca60ce126b3837dde6841aa1256f1330c8d2e89c98a3fdeb5a700315e008ac6f0776e558a7e9",
+      "state": {
+        "version": 1,
+        "role": "patient",
+        "roleChosen": true,
+        "linkedPatientCode": null,
+        "alarmEnabled": true,
+        "profile": {
+          "name": "Jsjsjd",
+          "firstName": "Jsjsjd",
+          "caregiverName": "Tu cuidador",
+          "caregiverCode": "MED-2083",
+          "phone": "+52 55 1234 5678"
+        },
+        "treatments": [],
+        "doses": [],
+        "messages": [
+          {
+            "id": "msg_1b1330c934006a8b",
+            "role": "assistant",
+            "createdAt": "2026-11-13T06:01:36.924Z",
+            "source": "demo",
+            "content": "Hola 👋 Soy Medi, tu asistente de MedSync AI. Puedo ayudarte a entender tus tomas, tu inventario y qué hacer si olvidaste una dosis. ¿En qué te ayudo hoy?"
+          }
+        ],
+        "scanDraft": null,
+        "lastSyncAt": "2026-11-13T06:01:36.924Z",
+        "toast": null
+      },
+      "createdAt": "2026-11-13T06:01:36.910Z",
+      "updatedAt": "2026-11-13T06:01:36.910Z"
+    }
+  ],
+  "sessions": {
+    "896b3e8e122b1276b325aecc78a204aab3f620f86677052ed7ee6eae16f22bf3": {
+      "userId": "usr_96cb5c6fcd34d78a",
+      "createdAt": 1794539314852
+    },
+    "95d257d7a5efa241b8ff8fbc967adf6c04c2b2283e39fc7131e2fd13a1d4ee5a": {
+      "userId": "usr_96cb5c6fcd34d78a",
+      "createdAt": 1794540838638
+    },
+    "250c7c30d0c718e1b57de01dced0db1bf258957907766ef9a4d7346342b3a390": {
+      "userId": "usr_96cb5c6fcd34d78a",
+      "createdAt": 1794549676498
+    },
+    "a124bceca34753b11d8abc351a3b31dcceccf53ac5456a3c27a6e2f5c24021c5": {
+      "userId": "usr_ee7130278c9e0641",
+      "createdAt": 1794549696926
+    }
+  }
+}

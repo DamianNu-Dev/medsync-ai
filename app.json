@@ -1,25 +1,74 @@
 {
   "expo": {
-    "name": "medsync-ai",
+    "name": "MedSync AI",
     "slug": "medsync-ai",
     "version": "1.0.0",
     "orientation": "portrait",
+    "scheme": "medsync",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.medsync.ai",
+      "infoPlist": {
+        "NSCameraUsageDescription": "MedSync AI usa la cámara para escanear recetas médicas y autocompletar tu tratamiento.",
+        "NSPhotoLibraryUsageDescription": "MedSync AI accede a tus fotos para analizar una receta médica que ya tengas guardada."
+      }
     },
     "android": {
+      "package": "com.medsync.ai",
+      "predictiveBackGestureEnabled": false,
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#E3F3EE",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-      },
-      "predictiveBackGestureEnabled": false
+      }
     },
     "web": {
+      "bundler": "metro",
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-router",
+        {
+          "asyncRoutes": {
+            "web": false
+          }
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "MedSync AI necesita acceso a tus fotos para analizar recetas médicas.",
+          "cameraPermission": "MedSync AI usa la cámara para escanear recetas médicas.",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "MedSync AI usa la cámara para escanear recetas y verificar que la pastilla esté en la boca.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "barcodeScannerEnabled": false
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#0B6B57",
+          "enableRemoteNotifications": false
+        }
+      ],
+      "expo-audio",
+      "expo-asset",
+      "expo-secure-store",
+      "expo-build-properties"
+    ],
+    "experiments": {
+      "typedRoutes": false
     }
   }
 }
