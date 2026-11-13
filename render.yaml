@@ -2,12 +2,11 @@ services:
   - type: web
     name: medsync-ai-backend
     env: node
-    rootDir: server
-    buildCommand: "cd /opt/render/project/src && pnpm install --frozen-lockfile"
-    startCommand: "cd /opt/render/project/src/server && node index.mjs"
+    buildCommand: "pnpm install --frozen-lockfile"
+    startCommand: "pnpm run server"
     envVars:
       - key: SUPABASE_URL
-        value: https://uctflkfdgifxcxdrooxf.supabase.co
+        value: TU_SUPABASE_URL
       - key: SUPABASE_ANON_KEY
         value: TU_SUPABASE_ANON_KEY
       - key: SUPABASE_SERVICE_ROLE_KEY
