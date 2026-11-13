@@ -8,7 +8,7 @@ import {
 } from '@expo-google-fonts/manrope';
 import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -21,6 +21,7 @@ import { NotificationProvider } from '@/store/NotificationProvider';
 import { DoseAlarm } from '@/components/alarm/DoseAlarm';
 import { NotificationSync } from '@/components/notifications/NotificationSync';
 import { BrandMark } from '@/components/ui/BrandMark';
+import { SplashScreen } from '@/components/splash';
 import { ToastHost } from '@/components/ui/Toast';
 
 export default function RootLayout() {
@@ -61,6 +62,11 @@ function RootNavigator() {
 
   if (!ready) return <LoadingScreen />;
 
+  // Pantalla de carga inicial que da tiempo al servidor de Render a despertar
+  if (!authenticated) {
+    return <SplashScreen />;
+  }
+
   return (
     <Stack
       screenOptions={{
@@ -69,60 +75,21 @@ function RootNavigator() {
         animation: 'slide_from_right',
       }}
     >
-      {/* Pantalla de carga inicial que da tiempo al servidor de Render a despertar */}
+      <Stack.Screen name="(tabs)" />
       <Stack.Screen
-        name="splash"
-        options={{ gestureEnabled: false, headerShown: false }}
+        name="treatment/new"
+        options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
       />
-
-      <Stack.Protected guard={authenticated}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen
-          name="treatment/new"
-          options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
-        />
-        <Stack.Screen
-          name="scan"
-          options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
-        />
-        <Stack.Screen name="treatment/[id]" />
-        <Stack.Screen
-          name="ai-settings"
-          options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
-        />
-      </Stack.Protected>
-
-      <Stack.Protected guard={!authenticated}>
-        <Stack.Screen name="auth" options={{ animation: 'fade' }} />
-      </Stack.Protected>
+      <Stack.Screen
+        name="scan"
+        options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+      />
+      <Stack.Screen name="treatment/[id]" />
+      <Stack.Screen
+        name="ai-settings"
+        options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+      />
     </Stack>
-  );
-}
-
-function SplashScreen() {
-  const { mode } = useAuth();
-  const authenticated = mode === 'account' || mode === 'local';
-
-  useEffect(() => {
-    // Espera 3 segundos para dar tiempo al servidor de Render a despertar
-    const timer = setTimeout(() => {
-      router.replace(authenticated ? '/(tabs)' : '/auth');
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, [authenticated]);
-
-  return (
-    <View style={styles.splashContainer}>
-      <BrandMark size={80} showWordmark={true} />
-      <ActivityIndicator size="large" color={colors.primary} />
-      <AppText variant="body" color={colors.inkSoft} style={styles.text}>
-        Conectando con MedSync…
-      </AppText>
-      <AppText variant="caption" color={colors.inkMuted} style={styles.subtext}>
-        Si es la primera vez, el servidor puede tardar unos segundos en despertar.
-      </AppText>
-    </View>
   );
 }
 
@@ -142,22 +109,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 28,
-  },
-  splashContainer: {
-    flex: 1,
-    backgroundColor: colors.bg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-  },
-  text: {
-    marginTop: 20,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  subtext: {
-    marginTop: 8,
-    textAlign: 'center',
-    lineHeight: 18,
   },
 });

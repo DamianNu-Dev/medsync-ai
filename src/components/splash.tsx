@@ -11,10 +11,10 @@ import { Button } from '@/components/ui/Button';
 const BACKEND_URL =
   process.env.EXPO_PUBLIC_API_URL ?? 'https://medsync-ai-3.onrender.com';
 
-export default function SplashScreen() {
+export function SplashScreen() {
   const [status, setStatus] = useState<'checking' | 'awake' | 'error'>('checking');
   const [attempt, setAttempt] = useState(0);
-  const [maxAttempts] = useState(10);
+  const [maxAttempts] = useState(12);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -29,7 +29,6 @@ export default function SplashScreen() {
         });
         if (response.ok) {
           setStatus('awake');
-          // Espera 1 segundo extra para asegurar que el servidor esté listo
           timer = setTimeout(() => {
             router.replace('/auth');
           }, 1000);
@@ -41,7 +40,7 @@ export default function SplashScreen() {
 
       if (attempt >= maxAttempts) {
         setStatus('error');
-        setError('El servidor tarda en despertar. Intenta de nuevo.');
+        setError('El servidor no responde. Intenta de nuevo o usa modo local.');
         return;
       }
 
@@ -61,7 +60,9 @@ export default function SplashScreen() {
     setError(null);
   };
 
-  const progress = Math.min((attempt / maxAttempts) * 100, 100);
+  const goLocal = () => {
+    router.replace('/auth?local=true');
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -93,13 +94,22 @@ export default function SplashScreen() {
             <AppText variant="body" color={colors.danger} style={styles.text}>
               {error}
             </AppText>
-            <Button
-              label="Intentar de nuevo"
-              icon="refresh-outline"
-              variant="outline"
-              size="md"
-              onPress={() => void retry()}
-            />
+            <View style={styles.buttonRow}>
+              <Button
+                label="Intentar de nuevo"
+                icon="refresh-outline"
+                variant="outline"
+                size="md"
+                onPress={() => void retry()}
+              />
+              <Button
+                label="Modo local (sin servidor)"
+                icon="cloud-outline"
+                variant="ghost"
+                size="md"
+                onPress={() => void goLocal()}
+              />
+            </View>
           </View>
         )}
       </View>
@@ -121,5 +131,11 @@ const styles = StyleSheet.create({
   errorContainer: {
     marginTop: 24,
     alignItems: 'center',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+    justifyContent: 'center',
   },
 });
