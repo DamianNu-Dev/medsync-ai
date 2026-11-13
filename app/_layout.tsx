@@ -58,38 +58,48 @@ export default function RootLayout() {
 
 function RootNavigator() {
   const { ready, mode } = useAuth();
+  const [splashDone, setSplashDone] = useState(false);
   const authenticated = mode === 'account' || mode === 'local';
 
   if (!ready) return <LoadingScreen />;
 
-  // Pantalla de carga inicial que da tiempo al servidor de Render a despertar
-  if (!authenticated) {
-    return <SplashScreen />;
+  // Si ya pasó el splash, mostrar navegación normal
+  if (splashDone) {
+    return (
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.bg },
+          animation: 'slide_from_right',
+        }}
+      >
+        <Stack.Protected guard={authenticated}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen
+            name="treatment/new"
+            options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+          />
+          <Stack.Screen
+            name="scan"
+            options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+          />
+          <Stack.Screen name="treatment/[id]" />
+          <Stack.Screen
+            name="ai-settings"
+            options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+          />
+        </Stack.Protected>
+
+        <Stack.Protected guard={!authenticated}>
+          <Stack.Screen name="auth" options={{ animation: 'fade' }} />
+        </Stack.Protected>
+      </Stack>
+    );
   }
 
+  // Mientras no termine el splash, mostrar pantalla de carga
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: colors.bg },
-        animation: 'slide_from_right',
-      }}
-    >
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen
-        name="treatment/new"
-        options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
-      />
-      <Stack.Screen
-        name="scan"
-        options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
-      />
-      <Stack.Screen name="treatment/[id]" />
-      <Stack.Screen
-        name="ai-settings"
-        options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
-      />
-    </Stack>
+    <SplashScreen onComplete={() => setSplashDone(true)} />
   );
 }
 

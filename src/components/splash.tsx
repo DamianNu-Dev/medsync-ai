@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -11,53 +11,58 @@ import { Button } from '@/components/ui/Button';
 const BACKEND_URL =
   process.env.EXPO_PUBLIC_API_URL ?? 'https://medsync-ai-3.onrender.com';
 
-export function SplashScreen() {
+export function SplashScreen({ onComplete }: { onComplete: () => void }) {
   const [status, setStatus] = useState<'checking' | 'awake' | 'error'>('checking');
-  const [attempt, setAttempt] = useState(0);
-  const [maxAttempts] = useState(12);
   const [error, setError] = useState<string | null>(null);
+  const attemptRef = useRef(0);
+  const maxAttempts = 12;
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [showRetry, setShowRetry] = useState(false);
 
   useEffect(() => {
-    let timer: ReturnType<typeof setTimeout>;
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
-    const checkServer = async () => {
-      setAttempt((prev) => prev + 1);
+  const checkServer = async () => {
+    attemptRef.current += 1;
 
-      try {
-        const response = await fetch(`${BACKEND_URL}/api/health`, {
-          signal: AbortSignal.timeout(10000),
-        });
-        if (response.ok) {
-          setStatus('awake');
-          timer = setTimeout(() => {
-            router.replace('/auth');
-          }, 1000);
-          return;
-        }
-      } catch {
-        // Servidor probablemente dormido (plan gratuito de Render)
-      }
-
-      if (attempt >= maxAttempts) {
-        setStatus('error');
-        setError('El servidor no responde. Intenta de nuevo o usa modo local.');
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/health`, {
+        signal: AbortSignal.timeout(10000),
+      });
+      if (response.ok) {
+        setStatus('awake');
+        timerRef.current = setTimeout(() => {
+          onComplete();
+        }, 1000);
         return;
       }
+    } catch {
+      // Servidor probablemente dormido (plan gratuito de Render)
+    }
 
-      timer = setTimeout(checkServer, 5000);
-    };
+    if (attemptRef.current >= maxAttempts) {
+      setStatus('error');
+      setError('El servidor no responde. Intenta de nuevo o usa modo local.');
+      setShowRetry(true);
+      return;
+    }
 
+    timerRef.current = setTimeout(checkServer, 5000);
+  };
+
+  useEffect(() => {
     checkServer();
-
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, [attempt, maxAttempts]);
+  }, []);
 
   const retry = () => {
+    attemptRef.current = 0;
     setStatus('checking');
-    setAttempt(0);
     setError(null);
+    setShowRetry(false);
+    void checkServer();
   };
 
   const goLocal = () => {
@@ -78,7 +83,8 @@ export function SplashScreen() {
               Despertando servidor…
             </AppText>
             <AppText variant="caption" color={colors.inkMuted} style={styles.subtext}>
-              Intento {attempt} de {maxAttempts} · puede tardar hasta 60 segundos
+              Intento {attemptRef.current} de {maxAttempts} ·
+              puede tardar hasta 60 segundos
             </AppText>
           </>
         )}
@@ -89,7 +95,7 @@ export function SplashScreen() {
           </AppText>
         )}
 
-        {status === 'error' && error && (
+        {status === 'error' && error && showRetry && (
           <View style={styles.errorContainer}>
             <AppText variant="body" color={colors.danger} style={styles.text}>
               {error}
