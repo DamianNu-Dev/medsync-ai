@@ -25,6 +25,7 @@ import { getDashboardData } from '@/store/selectors';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { PillVerifyModal } from '@/components/alarm/PillVerifyModal';
+import { NativeAlarm } from '@/lib/nativeAlarm';
 
 const ALARM_WINDOW_MINUTES = 120;
 
@@ -119,6 +120,17 @@ export function DoseAlarm() {
       // En Expo Go o en la web puede no estar disponible.
     }
 
+    // Iniciar el servicio de foreground nativo para que la alarma siga
+    // sonando aunque el usuario saque la app de segundos plano o bloquee el teléfono.
+    if (Platform.OS === 'android') {
+      void NativeAlarm.startForegroundAlarm(
+        activeDoseId,
+        target?.treatment.id ?? '',
+        target?.treatment.name ?? '',
+        target?.treatment.strength ?? '',
+      );
+    }
+
     try {
       player.play();
     } catch {
@@ -169,6 +181,10 @@ export function DoseAlarm() {
 
   const handleVerified = () => {
     if (!target) return;
+    // Detener el servicio de foreground nativo al verificar la dosis.
+    if (Platform.OS === 'android') {
+      void NativeAlarm.stopForegroundAlarm();
+    }
     setVerifyOpen(false);
     setCompleted({
       name: target.treatment.name,
