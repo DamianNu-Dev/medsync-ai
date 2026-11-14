@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { stockNoun } from '@/constants/medication';
 import { colors, radius, spacing } from '@/constants/theme';
@@ -18,9 +18,10 @@ interface TreatmentCardProps {
   treatment: Treatment;
   nextDose?: JoinedDose;
   onPress: () => void;
+  onDelete?: () => void;
 }
 
-export function TreatmentCard({ treatment, nextDose, onPress }: TreatmentCardProps) {
+export function TreatmentCard({ treatment, nextDose, onPress, onDelete }: TreatmentCardProps) {
   const level = getStockLevel(treatment);
 
   return (
@@ -44,9 +45,27 @@ export function TreatmentCard({ treatment, nextDose, onPress }: TreatmentCardPro
             {treatment.strength} · {formatFrequency(treatment.frequencyHours)}
           </AppText>
         </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.inkFaint} />
+        <View style={styles.actions}>
+          {onDelete ? (
+            <Pressable
+              onPress={(event) => {
+                event.stopPropagation();
+                onDelete();
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={`Eliminar ${treatment.name}`}
+              hitSlop={6}
+              style={({ pressed }) => [
+                styles.deleteButton,
+                pressed ? styles.pressed : null,
+              ]}
+            >
+              <Ionicons name="trash-outline" size={18} color={colors.danger} />
+            </Pressable>
+          ) : null}
+          <Ionicons name="chevron-forward" size={20} color={colors.inkFaint} />
+        </View>
       </View>
-
       <View style={styles.meta}>
         <View style={styles.metaItem}>
           <Ionicons name="alarm-outline" size={15} color={colors.inkMuted} />
@@ -102,6 +121,20 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   texts: { flex: 1, gap: 3 },
+  actions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  deleteButton: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.pill,
+    backgroundColor: colors.dangerSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pressed: { opacity: 0.6 },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',

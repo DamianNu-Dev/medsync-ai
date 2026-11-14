@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useAudioPlayer } from 'expo-audio';
+import { setAudioModeAsync, useAudioPlayer } from 'expo-audio';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors, radius, spacing } from '@/constants/theme';
+import { configurePlayer } from '@/lib/audio';
 import { formatTime } from '@/lib/date';
 import { successFeedback } from '@/lib/haptics';
 import { useNow } from '@/hooks/useNow';
@@ -28,7 +29,7 @@ const ALARM_WINDOW_MINUTES = 120;
 
 export function DoseAlarm() {
   const { state, actions } = useApp();
-  const { mode } = useAuth();
+  const { mode, user } = useAuth();
   const now = useNow(5_000);
   const [verifyOpen, setVerifyOpen] = useState(false);
   const [completed, setCompleted] = useState<{
@@ -37,10 +38,11 @@ export function DoseAlarm() {
   } | null>(null);
   const player = useAudioPlayer(require('../../../assets/alarm.wav'));
   const successTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const alarmReadyRef = useRef(false);
-  const [alarmBlocked, setAlarmBlocked] = useState(false);
+  const [readyKey, setReadyKey] = useState<string | null>(null);
 
   const isAuthenticated = mode === 'account' || mode === 'local';
+  const authKey = isAuthenticated ? (user?.id ?? 'local') : null;
+  const alarmReady = authKey !== null && readyKey === authKey;
 
   const data = useMemo(() => getDashboardData(state, now), [state, now]);
 
@@ -58,24 +60,36 @@ export function DoseAlarm() {
     state.alarmEnabled &&
     Boolean(target) &&
     !completed &&
-    alarmReadyRef.current &&
-    !alarmBlocked;
+    alarmReady;
 
+  const activeDoseId = target?.dose.id ?? null;
+  const activeTreatmentName = target?.treatment.name ?? '';
+
+  // La alarma solo se habilita después del login. Antes se marcaba un bloqueo
+  // permanente que la dejaba muda incluso después de iniciar sesión.
   useEffect(() => {
-    if (!isAuthenticated) {
-      setAlarmBlocked(true);
-      return;
-    }
-    // Pequeño retraso antes de activar la alarma al cargar la app
-    // para que el usuario vea la pantalla primero
-    const timer = setTimeout(() => {
-      alarmReadyRef.current = true;
-    }, 3000);
+    if (!authKey) return;
+    // Pequeño retraso para que la persona vea primero la pantalla de inicio.
+    const timer = setTimeout(() => setReadyKey(authKey), 2500);
     return () => clearTimeout(timer);
-  }, [isAuthenticated]);
+  }, [authKey]);
+
+  // Sonar también con el teléfono en silencio y al bloquear la pantalla.
+  useEffect(() => {
+    void setAudioModeAsync({
+      playsInSilentMode: true,
+      shouldPlayInBackground: true,
+      interruptionMode: 'doNotMix',
+    }).catch(() => undefined);
+  }, []);
 
   useEffect(() => {
-    if (!active) {
+    if (!active || !activeDoseId) {
+      try {
+        player.setActiveForLockScreen(false);
+      } catch {
+        // Expo Go no incluye el servicio de reproducción en segundo plano.
+      }
       try {
         player.pause();
       } catch {
@@ -86,9 +100,19 @@ export function DoseAlarm() {
     }
 
     try {
-      player.loop = true;
-      player.volume = 1;
-      player.seekTo(0);
+      configurePlayer(player, { loop: true, volume: 1, restart: true });
+      player.setActiveForLockScreen(true, {
+        title: activeTreatmentName
+          ? `Hora de ${activeTreatmentName}`
+          : 'Hora de tu toma',
+        artist: 'MedSync AI',
+        albumTitle: 'Alarma de medicamento',
+      });
+    } catch {
+      // En Expo Go o en la web puede no estar disponible.
+    }
+
+    try {
       player.play();
     } catch {
       // El navegador puede bloquear el audio hasta una interacción.
@@ -97,13 +121,18 @@ export function DoseAlarm() {
 
     return () => {
       try {
+        player.setActiveForLockScreen(false);
+      } catch {
+        // no-op
+      }
+      try {
         player.pause();
       } catch {
         // no-op
       }
       Vibration.cancel();
     };
-  }, [active, player]);
+  }, [active, activeDoseId, activeTreatmentName, player]);
 
   useEffect(() => {
     if (!active || Platform.OS !== 'android') return;

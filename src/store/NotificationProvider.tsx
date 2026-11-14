@@ -31,6 +31,7 @@ const INITIAL: NotificationPermissionState = {
   status: 'undetermined',
   canAskAgain: true,
   exactAlarm: false,
+  exactAlarmCanAsk: false,
 };
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {

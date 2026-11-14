@@ -7,6 +7,7 @@ import { useNotifications } from '@/store/NotificationProvider';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { AlarmTestButtons } from '@/components/notifications/AlarmTestButtons';
 
 interface NotificationPermissionCardProps {
   compact?: boolean;
@@ -23,13 +24,17 @@ export function NotificationPermissionCard({
 
   const granted = permission.status === 'granted';
   const needsExactAlarm = granted && !permission.exactAlarm;
-  if (granted && permission.exactAlarm && !showWhenGranted) return null;
+  // En el inicio basta con avisar mientras falta el permiso. Una vez
+  // concedido, los detalles y las pruebas viven en el perfil.
+  if (granted && !showWhenGranted) return null;
 
   const tone = granted ? 'successSoft' : permission.status === 'denied' ? 'warningSoft' : 'infoSoft';
   const icon = granted ? 'notifications' : permission.status === 'denied' ? 'notifications-off' : 'notifications-outline';
   const title = granted
     ? needsExactAlarm
-      ? 'Alarmas exactas'
+      ? permission.exactAlarmCanAsk
+        ? 'Alarmas exactas'
+        : 'Aviso con la pantalla bloqueada'
       : 'Recordatorios activos'
     : permission.status === 'denied'
       ? 'Notificaciones bloqueadas'
@@ -37,7 +42,9 @@ export function NotificationPermissionCard({
 
   const detail = granted
     ? needsExactAlarm
-      ? 'Para que el aviso suene a la hora exacta, permite las alarmas exactas en Android.'
+      ? permission.exactAlarmCanAsk
+        ? 'Para que el aviso suene a la hora exacta, permite las alarmas exactas en Android.'
+        : 'Tu teléfono puede retrasar el aviso unos minutos. En la app instalada la alarma exacta se activa automáticamente.'
       : 'Tu teléfono te avisará a la hora de cada toma. La alarma interna seguirá pidiendo la verificación con la cámara.'
     : permission.status === 'denied'
       ? 'El sistema bloqueó los avisos. Puedes activarlos desde los ajustes del teléfono.'
@@ -62,24 +69,29 @@ export function NotificationPermissionCard({
       </View>
 
       {granted ? (
-        needsExactAlarm ? (
-          <Button
-            label="Permitir alarmas exactas"
-            icon="alarm-outline"
-            variant="outline"
-            size="md"
-            fullWidth
-            onPress={() => void requestExact()}
-          />
-        ) : (
-          <Button
-            label="Abrir ajustes de notificaciones"
-            icon="settings-outline"
-            variant="ghost"
-            size="sm"
-            onPress={() => void openSettings()}
-          />
-        )
+        <>
+          {needsExactAlarm ? (
+            permission.exactAlarmCanAsk ? (
+              <Button
+                label="Permitir alarmas exactas"
+                icon="alarm-outline"
+                variant="outline"
+                size="md"
+                fullWidth
+                onPress={() => void requestExact()}
+              />
+            ) : null
+          ) : (
+            <Button
+              label="Abrir ajustes de notificaciones"
+              icon="settings-outline"
+              variant="ghost"
+              size="sm"
+              onPress={() => void openSettings()}
+            />
+          )}
+          <AlarmTestButtons />
+        </>
       ) : permission.status === 'denied' && !permission.canAskAgain ? (
         <Button
           label="Abrir ajustes del teléfono"

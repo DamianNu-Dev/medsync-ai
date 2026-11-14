@@ -18,6 +18,13 @@
     "android": {
       "package": "com.medsync.ai",
       "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.VIBRATE",
+        "android.permission.WAKE_LOCK",
+        "android.permission.RECEIVE_BOOT_COMPLETED"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E3F3EE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -59,10 +66,19 @@
         "expo-notifications",
         {
           "color": "#0B6B57",
-          "enableRemoteNotifications": false
+          "defaultChannel": "medsync-alarm",
+          "enableRemoteNotifications": false,
+          "sounds": [
+            "./assets/alarm.wav"
+          ]
         }
       ],
-      "expo-audio",
+      [
+        "expo-audio",
+        {
+          "enableBackgroundPlayback": true
+        }
+      ],
       "expo-asset",
       "expo-secure-store",
       "expo-build-properties"

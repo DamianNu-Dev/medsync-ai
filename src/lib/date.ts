@@ -166,7 +166,11 @@ export function relativeFromNow(value: Date | string, now: Date = new Date()): s
 
 export function nextDateForTime(time: string, now: Date = new Date()): Date {
   const candidate = combineDateTime(toDateKey(now), time);
-  if (candidate.getTime() <= now.getTime() + MINUTE_MS) {
+  // Si la hora elegida acaba de pasar (por ejemplo, se guardó a las 5:27 y
+  // la toma es a las 5:28), se agenda para hoy, no para mañana. Solo se pasa
+  // al día siguiente cuando la hora quedó claramente en el pasado.
+  const grace = 2 * MINUTE_MS;
+  if (candidate.getTime() < now.getTime() - grace) {
     return addDays(candidate, 1);
   }
   return candidate;

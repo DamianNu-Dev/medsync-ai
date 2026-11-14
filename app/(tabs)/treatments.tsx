@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
-import React, { useMemo } from 'react';
+import React, { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { colors, radius, spacing } from '@/constants/theme';
@@ -8,6 +8,7 @@ import { useNow } from '@/hooks/useNow';
 import { getStockLevel } from '@/lib/schedule';
 import { useApp } from '@/store/AppProvider';
 import { getNextDosesByTreatment } from '@/store/selectors';
+import { Treatment } from '@/types';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -15,22 +16,27 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { FadeInView } from '@/components/ui/FadeInView';
 import { Screen } from '@/components/ui/Screen';
 import { SectionHeader } from '@/components/ui/SectionHeader';
+import { Sheet } from '@/components/ui/Sheet';
 import { LowStockBanner } from '@/components/dashboard/LowStockBanner';
 import { TreatmentCard } from '@/components/treatments/TreatmentCard';
 
 export default function TreatmentsScreen() {
-  const { state } = useApp();
+  const { state, actions } = useApp();
   const now = useNow(60_000);
+  const [pendingDelete, setPendingDelete] = useState<Treatment | null>(null);
+
+  const confirmDelete = () => {
+    if (!pendingDelete) return;
+    actions.deleteTreatment(pendingDelete.id);
+    setPendingDelete(null);
+  };
 
   const active = state.treatments.filter((treatment) => treatment.active);
   const paused = state.treatments.filter((treatment) => !treatment.active);
   const lowStock = state.treatments.filter(
     (treatment) => treatment.active && getStockLevel(treatment) !== 'ok',
   );
-  const nextByTreatment = useMemo(
-    () => getNextDosesByTreatment(state, now),
-    [state, now],
-  );
+  const nextByTreatment = getNextDosesByTreatment(state, now);
 
   const totalPills = active.reduce((sum, treatment) => sum + treatment.pillsRemaining, 0);
 
@@ -129,6 +135,7 @@ export default function TreatmentsScreen() {
                     treatment={treatment}
                     nextDose={nextByTreatment.get(treatment.id)}
                     onPress={() => router.push(`/treatment/${treatment.id}`)}
+                    onDelete={() => setPendingDelete(treatment)}
                   />
                 ))}
               </View>
@@ -145,6 +152,7 @@ export default function TreatmentsScreen() {
                     treatment={treatment}
                     nextDose={nextByTreatment.get(treatment.id)}
                     onPress={() => router.push(`/treatment/${treatment.id}`)}
+                    onDelete={() => setPendingDelete(treatment)}
                   />
                 ))}
               </View>
@@ -179,6 +187,39 @@ export default function TreatmentsScreen() {
           Los horarios son orientativos. Sigue siempre la indicación de tu médico.
         </AppText>
       </View>
+
+      <Sheet
+        visible={Boolean(pendingDelete)}
+        onClose={() => setPendingDelete(null)}
+        title="Eliminar tratamiento"
+        description="Esta acción no se puede deshacer."
+      >
+        <Card tone="dangerSoft" style={styles.deleteNote}>
+          <Ionicons name="warning-outline" size={20} color={colors.danger} />
+          <AppText variant="caption" color={colors.inkSoft} style={styles.deleteText}>
+            Se eliminarán {pendingDelete?.name ?? 'este medicamento'} y todas sus tomas
+            programadas, incluido el historial local.
+          </AppText>
+        </Card>
+        <Button
+          label={
+            pendingDelete
+              ? `Sí, eliminar ${pendingDelete.name}`
+              : 'Sí, eliminar tratamiento'
+          }
+          icon="trash-outline"
+          variant="danger"
+          fullWidth
+          onPress={confirmDelete}
+        />
+        <Button
+          label="Cancelar"
+          variant="ghost"
+          size="md"
+          style={styles.sheetCancel}
+          onPress={() => setPendingDelete(null)}
+        />
+      </Sheet>
     </Screen>
   );
 }
@@ -243,4 +284,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   footerText: { flex: 1, lineHeight: 17 },
+  deleteNote: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+  },
+  deleteText: { flex: 1, lineHeight: 19 },
+  sheetCancel: { marginTop: spacing.xs },
 });
