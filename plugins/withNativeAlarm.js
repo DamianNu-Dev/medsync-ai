@@ -9,7 +9,10 @@ const NATIVE_ALARM_DIR = path.join(__dirname, '..', 'android-native-alarm');
  *
  * Durante el build de EAS este plugin:
  * 1. Modifica AndroidManifest.xml con permisos, actividad overlay y servicio foreground.
- * 2. Modifica MainApplication.kt para registrar AlarmReactPackage y copia los archivos Kotlin nativos.
+ * 2. Modifica MainApplication.kt para registrar AlarmReactPackage.
+ * 3. Copia los archivos Kotlin nativos (AlarmOverlayActivity, AlarmForegroundService,
+ *    AlarmBridgeModule, AlarmReactPackage) al directorio android generado.
+ * 4. Copia el drawable ic_notification.xml para la notificación de foreground.
  */
 function withNativeAlarm(config) {
   config = withAndroidManifest(config, (config) => {
@@ -89,9 +92,7 @@ function withNativeAlarm(config) {
   });
 
   /**
-   * Copia archivos nativos y modifica MainApplication.kt después de que
-   * expo prebuild genere el directorio android/. Usamos withMainApplication
-   * como punto de entrada para acceder al sistema de archivos.
+   * Modifica MainApplication.kt y copia archivos nativos después del prebuild.
    */
   config = withMainApplication(config, (contents) => {
     const root = config.projectRoot || process.cwd();
@@ -128,7 +129,7 @@ function withNativeAlarm(config) {
     );
 
     try {
-      // Copiar archivos Kotlin nativos
+      // Copiar archivos Kotlin nativos al directorio generado
       const kotlinFiles = [
         'AlarmOverlayActivity.kt',
         'AlarmForegroundService.kt',
@@ -171,7 +172,7 @@ function withNativeAlarm(config) {
         fs.copyFileSync(drawableSrc, drawableDest);
       }
 
-      // Modificar MainApplication.kt para registrar AlarmReactPackage
+      // Modificar MainApplication.kt
       let nextContents = contents;
 
       // Agregar import si no existe
@@ -196,17 +197,15 @@ function withNativeAlarm(config) {
         }
       }
 
-      // También escribir el archivo modificado al sistema de archivos
-      // (contenido ya será escrito por expo, pero nos aseguramos)
+      // Escribir el archivo modificado al sistema de archivos
       if (fs.existsSync(mainAppPath)) {
         fs.writeFileSync(mainAppPath, nextContents, 'utf8');
       }
-
-      return nextContents;
     } catch (e) {
       console.warn('[MedSyncAlarm] Error injecting native alarm code:', e.message);
-      return contents;
     }
+
+    return nextContents;
   });
 
   return config;

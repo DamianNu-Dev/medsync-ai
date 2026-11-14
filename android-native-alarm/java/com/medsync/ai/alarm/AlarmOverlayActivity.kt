@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
+import com.medsync.ai.MainActivity
 import com.medsync.ai.R
 
 /**

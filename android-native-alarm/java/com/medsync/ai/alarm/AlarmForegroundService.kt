@@ -9,6 +9,7 @@ import android.os.IBinder
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.medsync.ai.MainActivity
 import com.medsync.ai.R
 
 /**
