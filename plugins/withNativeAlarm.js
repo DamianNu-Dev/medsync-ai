@@ -9,10 +9,8 @@ const NATIVE_ALARM_DIR = path.join(__dirname, '..', 'android-native-alarm');
  *
  * Durante el build de EAS este plugin:
  * 1. Modifica AndroidManifest.xml con permisos, actividad overlay y servicio foreground.
- * 2. Modifica MainApplication.kt para registrar AlarmReactPackage.
- * 3. Copia los archivos Kotlin nativos (AlarmOverlayActivity, AlarmForegroundService,
- *    AlarmBridgeModule, AlarmReactPackage) al directorio android generado.
- * 4. Copia el drawable ic_notification.xml para la notificación de foreground.
+ * 2. Copia los archivos Kotlin nativos al directorio android generado.
+ * 3. Modifica MainApplication.kt para registrar AlarmReactPackage.
  */
 function withNativeAlarm(config) {
   config = withAndroidManifest(config, (config) => {
@@ -154,6 +152,9 @@ function withNativeAlarm(config) {
         const dest = path.join(targetJavaDir, file);
         if (fs.existsSync(src)) {
           fs.copyFileSync(src, dest);
+          console.log(`[MedSyncAlarm] Copiado: ${file}`);
+        } else {
+          console.warn(`[MedSyncAlarm] No encontrado: ${src}`);
         }
       }
 
@@ -170,6 +171,7 @@ function withNativeAlarm(config) {
       const drawableDest = path.join(targetDrawableDir, 'ic_notification.xml');
       if (fs.existsSync(drawableSrc)) {
         fs.copyFileSync(drawableSrc, drawableDest);
+        console.log('[MedSyncAlarm] Copiado: ic_notification.xml');
       }
 
       // Modificar MainApplication.kt
@@ -200,6 +202,7 @@ function withNativeAlarm(config) {
       // Escribir el archivo modificado al sistema de archivos
       if (fs.existsSync(mainAppPath)) {
         fs.writeFileSync(mainAppPath, nextContents, 'utf8');
+        console.log('[MedSyncAlarm] MainApplication.kt modificado');
       }
     } catch (e) {
       console.warn('[MedSyncAlarm] Error injecting native alarm code:', e.message);

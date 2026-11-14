@@ -56,12 +56,10 @@ class AlarmOverlayActivity : Activity() {
 
     override fun onBackPressed() {
         // No permitir cerrar con el botón atrás mientras la alarma está activa.
-        // El usuario debe verificar con la cámara o la alarma sigue sonando.
         moveTaskToBack(true)
     }
 
     override fun onUserLeaveHint() {
-        // El usuario presionó el botón Home: mantener la actividad visible.
         moveTaskToBack(false)
     }
 }

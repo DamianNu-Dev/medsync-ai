@@ -1,4 +1,5 @@
-import { Platform, NativeModules } from 'react-native';
+import { Platform } from 'react-native';
+import { NativeModules } from 'react-native';
 
 const { AlarmBridge } = NativeModules;
 
