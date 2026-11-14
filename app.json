@@ -86,6 +86,7 @@
           "recordAudioAndroid": false
         }
       ],
+      "@notifee/react-native",
       "expo-asset",
       "expo-secure-store",
       "expo-build-properties",
