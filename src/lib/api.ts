@@ -76,6 +76,15 @@ let cachedBaseUrl: string | null = null;
 
 export async function loadApiBaseUrl(): Promise<string> {
   if (cachedBaseUrl) return cachedBaseUrl;
+
+  // Priorizar la URL configurada en .env (EXPO_PUBLIC_API_URL) para que
+  // el splash y el login usen exactamente la misma dirección.
+  const configured = process.env.EXPO_PUBLIC_API_URL?.trim();
+  if (configured) {
+    cachedBaseUrl = normalizeApiBaseUrl(configured);
+    return cachedBaseUrl;
+  }
+
   try {
     const stored = await AsyncStorage.getItem(API_URL_KEY);
     cachedBaseUrl = stored ? normalizeApiBaseUrl(stored) : detectApiBaseUrl();
@@ -103,57 +112,81 @@ interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   token?: string | null;
   body?: unknown;
+  retries?: number;
 }
+
+const SLEEP = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const baseUrl = await loadApiBaseUrl();
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const maxRetries = options.retries ?? 3;
+  let lastError: unknown = null;
 
-  try {
-    const response = await fetch(`${baseUrl}${path}`, {
-      method: options.method ?? 'GET',
-      headers: {
-        Accept: 'application/json',
-        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
-        ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
-      },
-      body: options.body ? JSON.stringify(options.body) : undefined,
-      signal: controller.signal,
-    });
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-    const text = await response.text();
-    let payload: unknown = null;
-    if (text) {
-      try {
-        payload = JSON.parse(text);
-      } catch {
-        payload = null;
+    try {
+      const response = await fetch(`${baseUrl}${path}`, {
+        method: options.method ?? 'GET',
+        headers: {
+          Accept: 'application/json',
+          ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+          ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
+        },
+        body: options.body ? JSON.stringify(options.body) : undefined,
+        signal: controller.signal,
+      });
+
+      const text = await response.text();
+      let payload: unknown = null;
+      if (text) {
+        try {
+          payload = JSON.parse(text);
+        } catch {
+          payload = null;
+        }
       }
-    }
 
-    if (!response.ok) {
-      const message =
-        payload && typeof payload === 'object' && 'error' in payload
-          ? String((payload as { error: unknown }).error)
-          : `El servidor respondió ${response.status}.`;
-      throw new ApiError(message, response.status);
-    }
+      if (!response.ok) {
+        const message =
+          payload && typeof payload === 'object' && 'error' in payload
+            ? String((payload as { error: unknown }).error)
+            : `El servidor respondió ${response.status}.`;
+        throw new ApiError(message, response.status);
+      }
 
-    return payload as T;
-  } catch (error) {
-    if (error instanceof ApiError) throw error;
-    if (error instanceof Error && error.name === 'AbortError') {
+      return payload as T;
+    } catch (error) {
+      lastError = error;
+
+      // No reintentar errores de API (4xx/5xx) ni aborts intencionales
+      if (error instanceof ApiError) throw error;
+      if (error instanceof Error && error.name === 'AbortError') {
+        // Reintentar si es timeout de red (servidor despertando)
+        if (attempt < maxRetries) {
+          await SLEEP(3000);
+          continue;
+        }
+        throw new ApiError(
+          'El servidor tardó demasiado en responder. Puede estar despertando (servidor gratuito). Intenta de nuevo.',
+        );
+      }
+
+      // Errores de red: reintentar
+      if (attempt < maxRetries) {
+        await SLEEP(3000);
+        continue;
+      }
       throw new ApiError(
-        'El servidor tardó demasiado en responder. Revisa que el backend esté encendido y en la misma red.',
+        'No pudimos conectar con el servidor. Revisa la dirección y que el backend esté encendido.',
       );
+    } finally {
+      clearTimeout(timeout);
     }
-    throw new ApiError(
-      'No pudimos conectar con el servidor. Revisa la dirección y que el backend esté encendido.',
-    );
-  } finally {
-    clearTimeout(timeout);
   }
+
+  throw lastError as Error;
 }
 
 export async function checkApiHealth(): Promise<boolean> {
