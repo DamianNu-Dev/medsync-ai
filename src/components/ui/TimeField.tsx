@@ -43,8 +43,8 @@ export function TimeField({
           label="Minutos"
           value={minutes}
           min={0}
-          max={55}
-          step={5}
+          max={59}
+          step={1}
           onChange={(next) => commit(hours12, next, isPM)}
           formatValue={(next) => pad2(next)}
         />

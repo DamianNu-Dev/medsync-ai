@@ -2,7 +2,9 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import React, { useMemo, useRef, useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -98,6 +100,14 @@ export default function NewTreatmentScreen() {
   const [form, setForm] = useState<FormState>(() =>
     formFromMedication(draftMedications[0]),
   );
+  const [medications, setMedications] = useState<ExtractedMedication[]>(
+    () => draftMedications,
+  );
+  const [editing, setEditing] = useState<{
+    index: number;
+    value: ExtractedMedication;
+  } | null>(null);
+  const [editorError, setEditorError] = useState<string | null>(null);
 
   const timesPerDay = getTreatmentTimesPerDay(form.frequencyHours);
   const neededPills = useMemo(
@@ -219,8 +229,8 @@ export default function NewTreatmentScreen() {
   };
 
   const saveAllMedications = () => {
-    if (draftMedications.length === 0) return;
-    for (const medication of draftMedications) {
+    if (medications.length === 0) return;
+    for (const medication of medications) {
       const input: NewTreatmentInput = {
         name: medication.medicationName,
         strength: medication.strength.trim() || 'Concentración no indicada',
@@ -236,10 +246,74 @@ export default function NewTreatmentScreen() {
       actions.addTreatment(input);
     }
     actions.showToast(
-      `${draftMedications.length} tratamientos agregados a tu calendario`,
+      `${medications.length} ${
+        medications.length === 1 ? 'tratamiento agregado' : 'tratamientos agregados'
+      } a tu calendario`,
       'success',
     );
     router.replace('/treatments');
+  };
+
+  const openEditor = (index: number) => {
+    setEditorError(null);
+    setEditing({ index, value: { ...medications[index] } });
+  };
+
+  const applyEditor = () => {
+    if (!editing) return;
+    const value = editing.value;
+    if (value.medicationName.trim().length < 2) {
+      setEditorError('Escribe el nombre del medicamento.');
+      return;
+    }
+    if (value.unitsPerDose < 1) {
+      setEditorError('Indica al menos una unidad por toma.');
+      return;
+    }
+    if (value.totalPills < value.unitsPerDose) {
+      setEditorError('La cantidad total debe alcanzar para al menos una toma.');
+      return;
+    }
+    setMedications((current) =>
+      current.map((medication, index) =>
+        index === editing.index
+          ? {
+              ...value,
+              medicationName: value.medicationName.trim(),
+              strength: value.strength.trim(),
+              notes: value.notes?.trim() || undefined,
+            }
+          : medication,
+      ),
+    );
+    setEditing(null);
+    setEditorError(null);
+  };
+
+  const updateEditing = (patch: Partial<ExtractedMedication>) => {
+    setEditing((current) =>
+      current ? { ...current, value: { ...current.value, ...patch } } : current,
+    );
+  };
+
+  const removeMedication = (index: number) => {
+    const medication = medications[index];
+    if (!medication) return;
+    Alert.alert(
+      'Quitar medicamento',
+      `¿Quitar ${medication.medicationName} de esta receta? No se guardará.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Quitar',
+          style: 'destructive',
+          onPress: () =>
+            setMedications((current) =>
+              current.filter((_, position) => position !== index),
+            ),
+        },
+      ],
+    );
   };
 
   if (isMultiMedication) {
@@ -259,7 +333,8 @@ export default function NewTreatmentScreen() {
               Receta escaneada
             </AppText>
             <AppText variant="h3" weight="bold">
-              Revisar {draftMedications.length} medicamentos
+              Revisar {medications.length}{' '}
+              {medications.length === 1 ? 'medicamento' : 'medicamentos'}
             </AppText>
           </View>
           <View style={styles.headerSpacer} />
@@ -276,7 +351,18 @@ export default function NewTreatmentScreen() {
               subtitle="Compara cada uno con tu receta. Al confirmar se agregan todos a tu calendario."
             />
 
-            {draftMedications.map((medication, index) => (
+            {medications.length === 0 ? (
+              <Card tone="warningSoft" style={styles.multiWarnings}>
+                <AppText variant="bodyStrong" color={colors.warning}>
+                  No quedan medicamentos por agregar
+                </AppText>
+                <AppText variant="caption" color={colors.inkSoft}>
+                  Vuelve al escáner para tomar otra foto de la receta.
+                </AppText>
+              </Card>
+            ) : null}
+
+            {medications.map((medication, index) => (
               <Card
                 key={`${medication.medicationName}-${index}`}
                 style={styles.multiCard}
@@ -337,6 +423,39 @@ export default function NewTreatmentScreen() {
                     </AppText>
                   </View>
                 ) : null}
+
+                <View style={styles.multiActions}>
+                  <Pressable
+                    onPress={() => openEditor(index)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Editar ${medication.medicationName}`}
+                    style={({ pressed }) => [
+                      styles.multiAction,
+                      styles.multiActionEdit,
+                      pressed ? styles.pressed : null,
+                    ]}
+                  >
+                    <Ionicons name="create-outline" size={18} color={colors.primaryStrong} />
+                    <AppText variant="caption" weight="bold" color={colors.primaryStrong}>
+                      Revisar y editar
+                    </AppText>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => removeMedication(index)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Quitar ${medication.medicationName}`}
+                    style={({ pressed }) => [
+                      styles.multiAction,
+                      styles.multiActionRemove,
+                      pressed ? styles.pressed : null,
+                    ]}
+                  >
+                    <Ionicons name="trash-outline" size={18} color={colors.danger} />
+                    <AppText variant="caption" weight="bold" color={colors.danger}>
+                      Quitar
+                    </AppText>
+                  </Pressable>
+                </View>
               </Card>
             ))}
 
@@ -373,14 +492,30 @@ export default function NewTreatmentScreen() {
 
         <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
           <Button
-            label={`Agregar ${draftMedications.length} tratamientos`}
+            label={
+              medications.length === 1
+                ? 'Agregar 1 tratamiento'
+                : `Agregar ${medications.length} tratamientos`
+            }
             icon="checkmark"
             iconPosition="left"
             size="md"
+            disabled={medications.length === 0}
             onPress={saveAllMedications}
             style={styles.footerButtonPrimary}
           />
         </View>
+
+        <MedicationEditor
+          value={editing?.value ?? null}
+          error={editorError}
+          onChange={updateEditing}
+          onClose={() => {
+            setEditing(null);
+            setEditorError(null);
+          }}
+          onSave={applyEditor}
+        />
       </SafeAreaView>
     );
   }
@@ -788,6 +923,193 @@ function SummaryItem({
   );
 }
 
+interface MedicationEditorProps {
+  value: ExtractedMedication | null;
+  error: string | null;
+  onChange: (patch: Partial<ExtractedMedication>) => void;
+  onClose: () => void;
+  onSave: () => void;
+}
+
+function MedicationEditor({
+  value,
+  error,
+  onChange,
+  onClose,
+  onSave,
+}: MedicationEditorProps) {
+  return (
+    <Modal
+      visible={value !== null}
+      animationType="slide"
+      onRequestClose={onClose}
+      statusBarTranslucent
+    >
+      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+        <View style={styles.header}>
+          <Pressable
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel="Cerrar edición"
+            style={({ pressed }) => [styles.headerButton, pressed ? styles.pressed : null]}
+          >
+            <Ionicons name="close" size={22} color={colors.ink} />
+          </Pressable>
+          <View style={styles.headerText}>
+            <AppText variant="caption" color={colors.inkMuted} weight="semibold">
+              Receta escaneada
+            </AppText>
+            <AppText variant="h3" weight="bold">
+              Revisar medicamento
+            </AppText>
+          </View>
+          <View style={styles.headerSpacer} />
+        </View>
+
+        {value ? (
+          <KeyboardAvoidingView
+            style={styles.flex}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          >
+            <ScrollView
+              style={styles.flex}
+              contentContainerStyle={styles.editorContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              <StepHeading
+                title="Ajusta los datos"
+                subtitle="Corrige lo que la receta diga distinto. La hora corresponde a la primera toma."
+              />
+
+              <TextField
+                label="Medicamento"
+                value={value.medicationName}
+                onChangeText={(text) => onChange({ medicationName: text })}
+                placeholder="Ej. Metformina"
+                autoCapitalize="words"
+                autoCorrect={false}
+              />
+
+              <TextField
+                label="Concentración"
+                value={value.strength}
+                onChangeText={(text) => onChange({ strength: text })}
+                placeholder="Ej. 850 mg"
+              />
+
+              <View style={styles.fieldGroup}>
+                <AppText variant="label" color={colors.inkSoft}>
+                  Forma del medicamento
+                </AppText>
+                <ChoiceChips
+                  options={FORM_OPTIONS}
+                  value={value.form}
+                  onChange={(form) => onChange({ form })}
+                />
+              </View>
+
+              <Stepper
+                label="Unidades por toma"
+                value={value.unitsPerDose}
+                onChange={(unitsPerDose) => onChange({ unitsPerDose })}
+                min={1}
+                max={10}
+                suffix={unitNoun(value.form, value.unitsPerDose)}
+              />
+
+              <View style={styles.fieldGroup}>
+                <AppText variant="label" color={colors.inkSoft}>
+                  Frecuencia
+                </AppText>
+                <ChoiceChips
+                  options={FREQUENCY_OPTIONS.map((option) => ({
+                    value: option.value,
+                    label: option.label,
+                    hint: option.hint,
+                  }))}
+                  value={value.frequencyHours}
+                  onChange={(frequencyHours) => onChange({ frequencyHours })}
+                />
+              </View>
+
+              <TimeField
+                value={value.startTime}
+                onChange={(startTime) => onChange({ startTime })}
+              />
+
+              <View style={styles.fieldGroup}>
+                <AppText variant="label" color={colors.inkSoft}>
+                  Duración del tratamiento
+                </AppText>
+                <ChoiceChips
+                  options={DURATION_PRESETS.map((days) => ({
+                    value: days,
+                    label: `${days} días`,
+                  }))}
+                  value={value.durationDays}
+                  onChange={(durationDays) => onChange({ durationDays })}
+                  columns={2}
+                />
+                <Stepper
+                  label="Días indicados en la receta"
+                  value={value.durationDays}
+                  onChange={(durationDays) => onChange({ durationDays })}
+                  min={1}
+                  max={365}
+                  suffix={value.durationDays === 1 ? 'día' : 'días'}
+                />
+              </View>
+
+              <TextField
+                label="Cantidad total de unidades"
+                value={String(value.totalPills)}
+                onChangeText={(text) => {
+                  const next = Number.parseInt(text.replace(/[^0-9]/g, ''), 10);
+                  onChange({ totalPills: Number.isNaN(next) ? 0 : Math.min(next, 99999) });
+                }}
+                placeholder="Ej. 60"
+                keyboardType="number-pad"
+              />
+
+              <TextField
+                label="Notas (opcional)"
+                value={value.notes ?? ''}
+                onChangeText={(text) => onChange({ notes: text })}
+                placeholder="Ej. Tomar con alimentos."
+                multiline
+                maxLength={180}
+              />
+
+              {error ? (
+                <AppText variant="caption" color={colors.danger}>
+                  {error}
+                </AppText>
+              ) : null}
+            </ScrollView>
+
+            <View style={[styles.footer, { paddingBottom: Math.max(insetsSafeBottom(), 12) }]}>
+              <Button
+                label="Guardar cambios"
+                icon="checkmark"
+                iconPosition="left"
+                size="md"
+                onPress={onSave}
+                style={styles.footerButtonPrimary}
+              />
+            </View>
+          </KeyboardAvoidingView>
+        ) : null}
+      </SafeAreaView>
+    </Modal>
+  );
+}
+
+/** Espacio inferior seguro dentro de un modal a pantalla completa. */
+function insetsSafeBottom(): number {
+  return Platform.OS === 'ios' ? 20 : 12;
+}
+
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   flex: { flex: 1 },
@@ -911,6 +1233,31 @@ const styles = StyleSheet.create({
   },
   summaryItemText: { flex: 1, minWidth: 0, gap: 0 },
   multiCard: { gap: spacing.lg },
+  multiActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: spacing.md,
+  },
+  multiAction: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    minHeight: 44,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.sm,
+  },
+  multiActionEdit: { backgroundColor: colors.primarySoft },
+  multiActionRemove: { backgroundColor: colors.dangerSoft },
+  editorContent: {
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing['3xl'],
+    gap: spacing.xl,
+  },
   multiHeader: {
     flexDirection: 'row',
     alignItems: 'center',

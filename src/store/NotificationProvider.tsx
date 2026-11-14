@@ -4,6 +4,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { AppState } from 'react-native';
@@ -46,11 +47,14 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   }, []);
 
   useEffect(() => {
-    void refresh();
+    const timer = setTimeout(() => void refresh(), 0);
     const subscription = AppState.addEventListener('change', (state) => {
       if (state === 'active') void refresh();
     });
-    return () => subscription.remove();
+    return () => {
+      clearTimeout(timer);
+      subscription.remove();
+    };
   }, [refresh]);
 
   const request = useCallback(async () => {
@@ -63,6 +67,21 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       setLoading(false);
     }
   }, []);
+
+  // Al abrir la app instalada se pide el permiso de inmediato, sin tener que
+  // buscarlo en los ajustes del teléfono.
+  const askedOnLaunch = useRef(false);
+  useEffect(() => {
+    const shouldAsk =
+      !loading &&
+      !askedOnLaunch.current &&
+      permission.status === 'undetermined' &&
+      permission.canAskAgain;
+    if (!shouldAsk) return;
+    askedOnLaunch.current = true;
+    const timer = setTimeout(() => void request(), 0);
+    return () => clearTimeout(timer);
+  }, [loading, permission.canAskAgain, permission.status, request]);
 
   const requestExact = useCallback(async () => {
     const granted = await requestExactAlarmPermission();

@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors, radius, spacing } from '@/constants/theme';
 import { configurePlayer } from '@/lib/audio';
+import { cancelDisplayedAlarms } from '@/lib/alarmOverlay';
 import { formatTime } from '@/lib/date';
 import { supportsLockScreenControls } from '@/lib/environment';
 import { successFeedback } from '@/lib/haptics';
@@ -102,6 +103,10 @@ export function DoseAlarm() {
       Vibration.cancel();
       return;
     }
+
+    // La notificación con full-screen ya cumplió su función: se detiene su
+    // sonido en bucle para que suene solo la alarma interna.
+    void cancelDisplayedAlarms();
 
     try {
       configurePlayer(player, { loop: true, volume: 1, restart: true });

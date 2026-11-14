@@ -21,6 +21,8 @@
       "permissions": [
         "android.permission.POST_NOTIFICATIONS",
         "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.USE_EXACT_ALARM",
+        "android.permission.USE_FULL_SCREEN_INTENT",
         "android.permission.VIBRATE",
         "android.permission.WAKE_LOCK",
         "android.permission.RECEIVE_BOOT_COMPLETED",
@@ -86,7 +88,8 @@
       ],
       "expo-asset",
       "expo-secure-store",
-      "expo-build-properties"
+      "expo-build-properties",
+      "./plugins/withFullScreenAlarm"
     ],
     "experiments": {
       "typedRoutes": false

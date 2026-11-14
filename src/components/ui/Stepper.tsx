@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import React from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
 import { colors, radius, spacing } from '@/constants/theme';
@@ -17,6 +17,10 @@ interface StepperProps {
   style?: StyleProp<ViewStyle>;
 }
 
+/** Mantener pulsado acelera el cambio (útil para minutos o días). */
+const HOLD_DELAY_MS = 450;
+const HOLD_INTERVAL_MS = 80;
+
 export function Stepper({
   value,
   onChange,
@@ -31,7 +35,87 @@ export function Stepper({
   const canDecrease = value > min;
   const canIncrease = value < max;
 
-  const update = (delta: number) => onChange(Math.min(max, Math.max(min, value + delta)));
+  const valueRef = useRef(value);
+  useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
+
+  const holdDelay = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const holdInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  const heldValue = useRef(false);
+
+  const stopHold = useCallback(() => {
+    if (holdDelay.current) {
+      clearTimeout(holdDelay.current);
+      holdDelay.current = null;
+    }
+    if (holdInterval.current) {
+      clearInterval(holdInterval.current);
+      holdInterval.current = null;
+    }
+  }, []);
+
+  useEffect(() => stopHold, [stopHold]);
+
+  const update = (delta: number) => {
+    const next = Math.min(max, Math.max(min, valueRef.current + delta));
+    if (next === valueRef.current) return;
+    valueRef.current = next;
+    onChange(next);
+  };
+
+  const startHold = (delta: number) => {
+    stopHold();
+    heldValue.current = false;
+    holdDelay.current = setTimeout(() => {
+      holdDelay.current = null;
+      heldValue.current = true;
+      update(delta);
+      holdInterval.current = setInterval(() => update(delta), HOLD_INTERVAL_MS);
+    }, HOLD_DELAY_MS);
+  };
+
+  const finishHold = () => {
+    stopHold();
+    const didHold = heldValue.current;
+    heldValue.current = false;
+    return didHold;
+  };
+
+  const handlePress = (delta: number) => {
+    // Si hubo repetición al mantener pulsado, no sumar un paso extra.
+    if (finishHold()) return;
+    update(delta);
+  };
+
+  const renderButton = (
+    delta: number,
+    enabled: boolean,
+    icon: React.ComponentProps<typeof Ionicons>['name'],
+    accessibilityLabel: string,
+  ) => (
+    <Pressable
+      onPressIn={() => {
+        if (enabled) startHold(delta);
+      }}
+      onPressOut={() => {
+        if (enabled) stopHold();
+      }}
+      onPress={() => {
+        if (enabled) handlePress(delta);
+      }}
+      disabled={!enabled}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      style={({ pressed }) => [
+        styles.button,
+        !enabled ? styles.disabled : null,
+        pressed && enabled ? styles.pressed : null,
+      ]}
+    >
+      <Ionicons name={icon} size={22} color={colors.ink} />
+    </Pressable>
+  );
 
   return (
     <View style={[styles.container, style]}>
@@ -41,19 +125,12 @@ export function Stepper({
         </AppText>
       ) : null}
       <View style={styles.control}>
-        <Pressable
-          onPress={() => update(-step)}
-          disabled={!canDecrease}
-          accessibilityRole="button"
-          accessibilityLabel={`${label ?? 'Valor'}: disminuir`}
-          style={({ pressed }) => [
-            styles.button,
-            !canDecrease ? styles.disabled : null,
-            pressed && canDecrease ? styles.pressed : null,
-          ]}
-        >
-          <Ionicons name="remove" size={22} color={colors.ink} />
-        </Pressable>
+        {renderButton(
+          -step,
+          canDecrease,
+          'remove',
+          `${label ?? 'Valor'}: disminuir`,
+        )}
         <View style={styles.valueWrap}>
           <AppText variant="h3" weight="bold" numberOfLines={1} adjustsFontSizeToFit>
             {formatValue ? formatValue(value) : value}
@@ -64,19 +141,7 @@ export function Stepper({
             </AppText>
           ) : null}
         </View>
-        <Pressable
-          onPress={() => update(step)}
-          disabled={!canIncrease}
-          accessibilityRole="button"
-          accessibilityLabel={`${label ?? 'Valor'}: aumentar`}
-          style={({ pressed }) => [
-            styles.button,
-            !canIncrease ? styles.disabled : null,
-            pressed && canIncrease ? styles.pressed : null,
-          ]}
-        >
-          <Ionicons name="add" size={22} color={colors.ink} />
-        </Pressable>
+        {renderButton(step, canIncrease, 'add', `${label ?? 'Valor'}: aumentar`)}
       </View>
     </View>
   );

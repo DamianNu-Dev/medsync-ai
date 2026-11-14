@@ -5,6 +5,7 @@ import {
   ensureExactAlarmPermissionOnce,
   syncDoseNotifications,
 } from '@/lib/notifications';
+import { cancelDisplayedAlarms } from '@/lib/alarmOverlay';
 import { useApp } from '@/store/AppProvider';
 import { useAuth } from '@/store/AuthProvider';
 import { useNotifications } from '@/store/NotificationProvider';
@@ -30,18 +31,16 @@ export function NotificationSync() {
     state.role === 'patient' &&
     state.alarmEnabled;
 
-  // Permiso de notificaciones: una sola vez, después de entrar como paciente.
+  // Permiso de notificaciones: se pide de inmediato al entrar, sin importar
+  // el rol. En Android 13+ el sistema muestra el diálogo en ese momento.
   useEffect(() => {
-    if (!isPatient) return;
+    if (!isAuthenticated) return;
     if (permission.status !== 'undetermined' || !permission.canAskAgain) return;
     if (askedPermissionRef.current) return;
 
     askedPermissionRef.current = true;
-    const timer = setTimeout(() => {
-      void request();
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, [isPatient, permission.canAskAgain, permission.status, request]);
+    void request();
+  }, [isAuthenticated, permission.canAskAgain, permission.status, request]);
 
   // Alarmas exactas: solo una vez, para que el aviso llegue a la hora.
   useEffect(() => {
@@ -79,6 +78,7 @@ export function NotificationSync() {
     const timeout = setTimeout(run, 1000);
     const subscription = AppState.addEventListener('change', (status) => {
       if (status !== 'active') return;
+      void cancelDisplayedAlarms();
       void refresh();
       run();
     });

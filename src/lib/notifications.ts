@@ -1,4 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
+import * as IntentLauncher from 'expo-intent-launcher';
 import * as Notifications from 'expo-notifications';
 import {
   AndroidAudioContentType,
@@ -10,6 +12,12 @@ import {
 import { Linking, Platform } from 'react-native';
 
 import { isExpoGo } from '@/lib/environment';
+import {
+  cancelTriggeredAlarms,
+  scheduleOverlayAlarms,
+  scheduleOverlayTest,
+  supportsFullScreenAlarm,
+} from '@/lib/alarmOverlay';
 import { Dose, Treatment } from '@/types';
 
 const CHANNEL_ID = 'medsync-alarm';
@@ -184,6 +192,24 @@ export async function openNotificationSettings(): Promise<void> {
   }
 }
 
+/**
+ * Abre la pantalla de Android que permite mostrar alarmas sobre otras apps
+ * (full-screen notifications). Si el fabricante no la expone, cae en los
+ * ajustes normales de la app.
+ */
+export async function openFullScreenAlarmSettings(): Promise<void> {
+  if (Platform.OS !== 'android' || isExpoGo) return;
+  const packageName = Constants.expoConfig?.android?.package ?? 'com.medsync.ai';
+  try {
+    await IntentLauncher.startActivityAsync(
+      'android.settings.MANAGE_APP_USE_FULL_SCREEN_INTENT',
+      { data: `package:${packageName}` },
+    );
+  } catch {
+    await openNotificationSettings();
+  }
+}
+
 function deliveryForAlarm(): 'alarmClock' | 'bestEffort' {
   // En Expo Go el permiso exacto no está declarado; el sistema lo degrada solo.
   return 'alarmClock';
@@ -237,10 +263,20 @@ export async function syncDoseNotifications(
   if (permission.status !== 'granted' && options.requestPermission) {
     permission = await requestNotificationPermission();
   }
-  if (permission.status !== 'granted') return 0;
+  if (permission.status !== 'granted') {
+    await cancelTriggeredAlarms();
+    return 0;
+  }
 
   await ensureAndroidChannel();
   await Notifications.cancelAllScheduledNotificationsAsync();
+
+  // En Android instalado se usan alarmas con full-screen intent: abren la app
+  // por encima de cualquier otra aplicación y suenan en bucle.
+  if (supportsFullScreenAlarm()) {
+    const overlayScheduled = await scheduleOverlayAlarms(items).catch(() => 0);
+    if (overlayScheduled > 0) return overlayScheduled;
+  }
 
   const now = Date.now();
   const horizon = now + HORIZON_DAYS * 24 * 60 * 60 * 1000;
@@ -277,6 +313,12 @@ export async function scheduleTestAlarmNotification(
   if (permission.status !== 'granted') return false;
 
   await ensureAndroidChannel();
+
+  if (supportsFullScreenAlarm()) {
+    const overlay = await scheduleOverlayTest(delaySeconds).catch(() => false);
+    if (overlay) return true;
+  }
+
   try {
     await Notifications.scheduleNotificationAsync({
       content: {
