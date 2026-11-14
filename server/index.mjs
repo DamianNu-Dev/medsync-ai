@@ -543,11 +543,35 @@ async function route(req, res) {
 
   if (method === 'PUT' && path === '/api/patient/state') {
     const user = await requireUser(req);
-    if (user.role !== 'patient') {
-      throw new HttpError(403, 'Solo el paciente puede actualizar su tratamiento.');
+
+    // El paciente guarda su propio estado; el cuidador guarda el del paciente
+    // al que está vinculado (para que los cambios se reflejen en ambos).
+    let patient = user;
+    if (user.role === 'caregiver') {
+      if (!user.linked_patient_id) {
+        throw new HttpError(
+          403,
+          'Vincula a tu paciente antes de modificar sus tratamientos.',
+        );
+      }
+      const { data: linkedPatient } = await supabaseQuery((client) =>
+        client
+          .from('users')
+          .select('*')
+          .eq('id', user.linked_patient_id)
+          .eq('role', 'patient')
+          .maybeSingle(),
+      );
+      if (!linkedPatient) {
+        throw new HttpError(404, 'El paciente ya no está disponible.');
+      }
+      patient = linkedPatient;
+    } else if (user.role !== 'patient') {
+      throw new HttpError(403, 'Esta cuenta no puede actualizar tratamientos.');
     }
+
     const body = await readJson(req);
-    const state = sanitizePatientState(user, body.state);
+    const state = sanitizePatientState(patient, body.state);
     const now = new Date().toISOString();
 
     const { error } = await supabaseQuery((client) =>
@@ -555,7 +579,7 @@ async function route(req, res) {
         .from('patient_states')
         .upsert(
           {
-            user_id: user.id,
+            user_id: patient.id,
             state,
             updated_at: now,
           },
@@ -566,7 +590,7 @@ async function route(req, res) {
     if (error) throw new HttpError(500, 'No se pudo guardar el estado.');
 
     await supabaseQuery((client) =>
-      client.from('users').update({ updated_at: now }).eq('id', user.id),
+      client.from('users').update({ updated_at: now }).eq('id', patient.id),
     );
 
     send(res, 200, { ok: true, updatedAt: now });

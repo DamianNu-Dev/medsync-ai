@@ -1,5 +1,9 @@
 import { AISettings, hasAIConfig } from '@/lib/aiSettings';
-import { MedicationForm, PrescriptionExtraction } from '@/types';
+import {
+  ExtractedMedication,
+  MedicationForm,
+  PrescriptionExtraction,
+} from '@/types';
 
 const VALID_FORMS: MedicationForm[] = [
   'tablet',
@@ -10,17 +14,45 @@ const VALID_FORMS: MedicationForm[] = [
   'patch',
 ];
 
+const MAX_MEDICATIONS = 10;
+
 export const SAMPLE_PRESCRIPTION: PrescriptionExtraction = {
   patientName: 'Rosa Martínez',
-  medicationName: 'Enalapril',
-  strength: '10 mg',
-  form: 'tablet',
-  unitsPerDose: 1,
-  frequencyHours: 12,
-  startTime: '08:00',
-  durationDays: 30,
-  totalPills: 60,
-  notes: 'Tomar con alimentos. No suspender sin indicación médica.',
+  medications: [
+    {
+      medicationName: 'Enalapril',
+      strength: '10 mg',
+      form: 'tablet',
+      unitsPerDose: 1,
+      frequencyHours: 12,
+      startTime: '08:00',
+      durationDays: 30,
+      totalPills: 60,
+      notes: 'Tomar con alimentos. No suspender sin indicación médica.',
+    },
+    {
+      medicationName: 'Metformina',
+      strength: '850 mg',
+      form: 'tablet',
+      unitsPerDose: 1,
+      frequencyHours: 12,
+      startTime: '08:00',
+      durationDays: 30,
+      totalPills: 60,
+      notes: 'Tomar después de los alimentos.',
+    },
+    {
+      medicationName: 'Atorvastatina',
+      strength: '20 mg',
+      form: 'tablet',
+      unitsPerDose: 1,
+      frequencyHours: 24,
+      startTime: '21:00',
+      durationDays: 30,
+      totalPills: 30,
+      notes: 'Tomar por la noche.',
+    },
+  ],
   confidence: 0.94,
   warnings: [
     'Dosis de ejemplo: confirma con tu médico antes de guardar.',
@@ -33,22 +65,30 @@ const VISION_PROMPT = `Eres un asistente farmacéutico que transcribe recetas m�
 Analiza la imagen y devuelve SOLO un objeto JSON válido, sin markdown, con esta forma exacta:
 {
   "patientName": string | null,
-  "medicationName": string,
-  "strength": string,
-  "form": "tablet" | "capsule" | "syrup" | "drops" | "injection" | "patch",
-  "unitsPerDose": number,
-  "frequencyHours": number,
-  "startTime": "HH:mm" en formato 24 h,
-  "durationDays": number,
-  "totalPills": number,
-  "notes": string,
+  "medications": [
+    {
+      "medicationName": string,
+      "strength": string,
+      "form": "tablet" | "capsule" | "syrup" | "drops" | "injection" | "patch",
+      "unitsPerDose": number,
+      "frequencyHours": number,
+      "startTime": "HH:mm" en formato 24 h,
+      "durationDays": number,
+      "totalPills": number,
+      "notes": string
+    }
+  ],
   "confidence": number entre 0 y 1,
   "warnings": string[]
 }
 Reglas:
+- Incluye TODOS los medicamentos que aparecen en la receta, uno por cada elemento de "medications". Si hay 3 medicamentos, el arreglo debe tener 3; si hay 5, debe tener 5. Nunca devuelvas solo el primero.
 - No inventes datos que no aparezcan. Si faltan, usa valores seguros y agrega una advertencia.
-- "cada 8 horas" => frequencyHours 8; "cada 12 horas" => 12; "una vez al día" => 24.
+- "cada 8 horas" => frequencyHours 8; "cada 12 horas" => 12; "una vez al día" => 24; "cada 24 horas" => 24.
+- "1 tableta" => unitsPerDose 1; "2 tabletas" => 2.
 - Si solo hay indicación de días, calcula totalPills = unidades por toma * (duración en días * 24 / frecuencia).
+- Respeta el horario de cada medicamento si la receta lo indica; si no, usa "08:00".
+- En "notes" resume la indicación de ese medicamento (con alimentos, en ayunas, etc.).
 - Escribe los warnings en español, claros y breves.
 - La confianza debe reflejar la legibilidad real de la imagen.`;
 
@@ -58,9 +98,13 @@ function extractJson(raw: string): unknown {
     .replace(/^```(?:json)?/i, '')
     .replace(/```$/, '')
     .trim();
-  const start = cleaned.indexOf('{');
-  const end = cleaned.lastIndexOf('}');
-  if (start === -1 || end === -1) throw new Error('La IA no devolvió un JSON válido.');
+  const start = cleaned.search(/[[{]/);
+  if (start === -1) throw new Error('La IA no devolvió un JSON válido.');
+  const opener = cleaned[start];
+  const end = cleaned.lastIndexOf(opener === '[' ? ']' : '}');
+  if (end === -1 || end <= start) {
+    throw new Error('La IA no devolvió un JSON válido.');
+  }
   return JSON.parse(cleaned.slice(start, end + 1));
 }
 
@@ -90,13 +134,11 @@ function normalizeTime(value: unknown): string {
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 }
 
-function normalizeExtraction(value: unknown): PrescriptionExtraction {
-  if (!value || typeof value !== 'object') {
-    throw new Error('La respuesta no tiene el formato esperado.');
-  }
+function normalizeMedication(value: unknown): ExtractedMedication | null {
+  if (!value || typeof value !== 'object') return null;
   const raw = value as Record<string, unknown>;
-  const medicationName = String(raw.medicationName ?? '').trim();
-  if (!medicationName) throw new Error('No se pudo identificar el medicamento.');
+  const medicationName = String(raw.medicationName ?? raw.name ?? '').trim();
+  if (!medicationName) return null;
 
   const form = normalizeForm(raw.form);
   const unitsPerDose = clampNumber(raw.unitsPerDose, 1, 1, 20);
@@ -105,21 +147,54 @@ function normalizeExtraction(value: unknown): PrescriptionExtraction {
   const suggestedPills =
     unitsPerDose * Math.max(1, Math.ceil((durationDays * 24) / frequencyHours));
   const totalPills = clampNumber(raw.totalPills, suggestedPills, 1, 5000);
-  const warnings = Array.isArray(raw.warnings)
-    ? raw.warnings.map((item) => String(item)).filter(Boolean).slice(0, 5)
-    : [];
 
   return {
-    patientName: raw.patientName ? String(raw.patientName) : undefined,
     medicationName,
-    strength: String(raw.strength ?? 'Consultar').trim(),
+    strength: String(raw.strength ?? 'Consultar').trim() || 'Consultar',
     form,
     unitsPerDose,
     frequencyHours,
     startTime: normalizeTime(raw.startTime),
     durationDays,
     totalPills,
-    notes: raw.notes ? String(raw.notes) : undefined,
+    notes: raw.notes ? String(raw.notes).trim() : undefined,
+  };
+}
+
+function normalizeExtraction(value: unknown): PrescriptionExtraction {
+  if (!value || typeof value !== 'object') {
+    throw new Error('La respuesta no tiene el formato esperado.');
+  }
+  const raw = value as Record<string, unknown>;
+  const list = Array.isArray(value)
+    ? value
+    : Array.isArray(raw.medications)
+      ? raw.medications
+      : raw.medicationName
+        ? [raw]
+        : [];
+
+  const medications: ExtractedMedication[] = [];
+  for (const item of list) {
+    const medication = normalizeMedication(item);
+    if (medication) medications.push(medication);
+    if (medications.length >= MAX_MEDICATIONS) break;
+  }
+
+  if (medications.length === 0) {
+    throw new Error('No se pudo identificar ningún medicamento.');
+  }
+
+  const warnings = Array.isArray(raw.warnings)
+    ? raw.warnings.map((item) => String(item)).filter(Boolean).slice(0, 5)
+    : [];
+  if (medications.length > 1) {
+    warnings.unshift(`Se detectaron ${medications.length} medicamentos. Revisa cada uno.`);
+  }
+
+  return {
+    patientName: raw.patientName ? String(raw.patientName) : undefined,
+    medications,
     confidence: Math.min(1, Math.max(0, Number(raw.confidence) || 0.6)),
     warnings:
       warnings.length > 0
@@ -143,6 +218,7 @@ export async function analyzePrescription(
     await new Promise((resolve) => setTimeout(resolve, 1200));
     return {
       ...SAMPLE_PRESCRIPTION,
+      medications: SAMPLE_PRESCRIPTION.medications.map((item) => ({ ...item })),
       warnings: [...SAMPLE_PRESCRIPTION.warnings],
       source: 'demo',
     };
@@ -172,7 +248,7 @@ export async function analyzePrescription(
       body: JSON.stringify({
         model: settings.visionModel,
         temperature: 0.1,
-        max_tokens: 700,
+        max_tokens: 1600,
         messages: [
           { role: 'system', content: VISION_PROMPT },
           {
@@ -180,7 +256,7 @@ export async function analyzePrescription(
             content: [
               {
                 type: 'text',
-                text: 'Extrae los datos de esta receta médica y devuelve solo el JSON solicitado.',
+                text: 'Extrae TODOS los medicamentos de esta receta médica y devuelve solo el JSON solicitado.',
               },
               {
                 type: 'image_url',

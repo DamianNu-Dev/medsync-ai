@@ -7,10 +7,12 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { AppState as RNAppState } from 'react-native';
 
 import { createGreetingMessage, createSeedState } from '@/data/seed';
 import {
   apiGetCaregiverPatient,
+  apiGetPatientState,
   apiLinkCaregiver,
   apiLogin,
   apiLogout,
@@ -89,7 +91,10 @@ function patientState(patient: ApiPatient): AppState {
       caregiverCode: patient.code,
     },
     messages: Array.isArray(patient.state.messages) ? patient.state.messages : [],
-    scanDraft: patient.state.scanDraft ?? null,
+    scanDraft:
+      patient.state.scanDraft && Array.isArray(patient.state.scanDraft.medications)
+        ? patient.state.scanDraft
+        : null,
     toast: null,
   };
 }
@@ -149,7 +154,7 @@ function messageOf(error: unknown): string {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { actions } = useApp();
+  const { state, actions } = useApp();
   const [ready, setReady] = useState(false);
   const [mode, setMode] = useState<AuthMode>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -323,7 +328,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setBusy(false);
       }
     },
-    [actions, token, user?.name],
+    [actions, token, user],
   );
 
   const unlinkPatient = useCallback(async () => {
@@ -342,26 +347,62 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setBusy(false);
     }
-  }, [actions, token, user?.name]);
+  }, [actions, token, user]);
 
   const refreshPatient = useCallback(async () => {
-    if (!token || user?.role !== 'caregiver' || !patient) return false;
+    if (!token || mode !== 'account') return false;
+
+    // No pisar cambios locales que todavía no se han subido.
+    if (lastPushedRef.current && snapshotForServer(state) !== lastPushedRef.current) {
+      return false;
+    }
+
     try {
-      const result = await apiGetCaregiverPatient(token);
-      if (result.patient.updatedAt === patient.updatedAt) return false;
-      setPatient(result.patient);
-      skipSyncRef.current = true;
-      actions.hydrateState(caregiverPatientState(result.patient, user.name));
-      setLastSyncedAt(result.patient.updatedAt);
-      setSyncState('saved');
-      return true;
+      if (user?.role === 'caregiver') {
+        if (!patient) return false;
+        const result = await apiGetCaregiverPatient(token);
+        if (result.patient.updatedAt === patient.updatedAt) return false;
+        const next = caregiverPatientState(result.patient, user.name);
+        setPatient(result.patient);
+        skipSyncRef.current = true;
+        lastPushedRef.current = snapshotForServer(next);
+        actions.hydrateState(next);
+        setLastSyncedAt(result.patient.updatedAt);
+        setSyncState('saved');
+        return true;
+      }
+
+      if (user?.role === 'patient') {
+        const result = await apiGetPatientState(token);
+        if (!result.state) return false;
+        if (result.updatedAt === lastSyncedAt) return false;
+        const apiPatient: ApiPatient = {
+          id: user.id,
+          name: user.name,
+          code: user.patientCode ?? '',
+          state: result.state,
+          updatedAt: result.updatedAt,
+        };
+        const next = patientState(apiPatient);
+        skipSyncRef.current = true;
+        lastPushedRef.current = snapshotForServer(next);
+        actions.hydrateState(next);
+        setPatient(apiPatient);
+        setLastSyncedAt(result.updatedAt);
+        setSyncState('saved');
+        return true;
+      }
+
+      return false;
     } catch {
       setSyncState('error');
       return false;
     }
-  }, [actions, patient, token, user]);
+  }, [actions, lastSyncedAt, mode, patient, state, token, user]);
 
-  refreshRef.current = refreshPatient;
+  useEffect(() => {
+    refreshRef.current = refreshPatient;
+  }, [refreshPatient]);
 
   const updateApiBaseUrl = useCallback(async (url: string) => {
     const normalized = await saveApiBaseUrl(url);
@@ -376,10 +417,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const clearError = useCallback(() => setError(null), []);
 
-  // Paciente: sube los cambios al backend con un pequeño debounce.
-  const { state } = useApp();
+  // Paciente y cuidador vinculado: suben los cambios al backend con un
+  // pequeño debounce para que ambos roles vean el mismo tratamiento.
+  const canSync =
+    mode === 'account' &&
+    Boolean(token) &&
+    (user?.role === 'patient' ||
+      (user?.role === 'caregiver' && Boolean(patient)));
+
   useEffect(() => {
-    if (mode !== 'account' || user?.role !== 'patient' || !token) return;
+    if (!canSync || !token) return;
     if (skipSyncRef.current) {
       skipSyncRef.current = false;
       return;
@@ -404,16 +451,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, 900);
 
     return () => clearTimeout(timeout);
-  }, [mode, state, token, user?.role]);
+  }, [canSync, state, token]);
 
-  // Cuidador: consulta el estado del paciente cada 15 s.
+  // Paciente y cuidador: revisan cambios remotos cada 15 s.
   useEffect(() => {
-    if (mode !== 'account' || user?.role !== 'caregiver' || !token || !patient) return;
+    if (mode !== 'account' || !token) return;
+    if (user?.role !== 'caregiver' && user?.role !== 'patient') return;
+    if (user?.role === 'caregiver' && !patient) return;
     const interval = setInterval(() => {
       void refreshRef.current();
     }, 15_000);
     return () => clearInterval(interval);
   }, [mode, patient, token, user?.role]);
+
+  // Al volver a la app, refrescar de inmediato si la pantalla estuvo inactiva.
+  useEffect(() => {
+    if (mode !== 'account' || !token) return;
+    const subscription = RNAppState.addEventListener('change', (status) => {
+      if (status === 'active') void refreshRef.current();
+    });
+    return () => subscription.remove();
+  }, [mode, token]);
 
   const value = useMemo<AuthContextValue>(
     () => ({

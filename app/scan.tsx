@@ -33,7 +33,7 @@ import { Card } from '@/components/ui/Card';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 
 const FRAME_HEIGHT = 260;
-const STAGES = ['Leyendo la imagen', 'Identificando el medicamento', 'Validando dosis y horarios'];
+const STAGES = ['Leyendo la imagen', 'Detectando los medicamentos', 'Validando dosis y horarios'];
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -319,9 +319,17 @@ export default function ScanScreen() {
               <View style={styles.resultTop}>
                 <View style={styles.resultTitle}>
                   <Ionicons name="checkmark-circle" size={22} color={colors.success} />
-                  <AppText variant="h3" weight="bold">
-                    Receta leída
-                  </AppText>
+                  <View style={styles.resultTitleText}>
+                    <AppText variant="h3" weight="bold">
+                      Receta leída
+                    </AppText>
+                    <AppText variant="caption" color={colors.inkMuted}>
+                      {result.medications.length}{' '}
+                      {result.medications.length === 1
+                        ? 'medicamento detectado'
+                        : 'medicamentos detectados'}
+                    </AppText>
+                  </View>
                 </View>
                 <Badge
                   label={
@@ -333,66 +341,86 @@ export default function ScanScreen() {
                 />
               </View>
 
-              <View style={styles.medRow}>
-                <View style={styles.medIcon}>
-                  <Ionicons name="document-text" size={24} color={colors.white} />
-                </View>
-                <View style={styles.medText}>
-                  <AppText variant="h2" weight="bold">
-                    {result.medicationName}
-                  </AppText>
-                  <AppText variant="body" color={colors.inkSoft}>
-                    {result.strength} · {doseAmountLabel(result.form, result.unitsPerDose)}
-                  </AppText>
-                  {result.patientName ? (
-                    <AppText variant="caption" color={colors.inkMuted}>
-                      Paciente: {result.patientName}
-                    </AppText>
+              {result.patientName ? (
+                <AppText variant="caption" color={colors.inkMuted}>
+                  Paciente: {result.patientName}
+                </AppText>
+              ) : null}
+
+              {result.medications.map((medication, index) => (
+                <View
+                  key={`${medication.medicationName}-${index}`}
+                  style={[styles.medBlock, index > 0 ? styles.medBlockBorder : null]}
+                >
+                  <View style={styles.medRow}>
+                    <View style={styles.medIcon}>
+                      <Ionicons name="document-text" size={24} color={colors.white} />
+                    </View>
+                    <View style={styles.medText}>
+                      <AppText variant="h2" weight="bold">
+                        {medication.medicationName}
+                      </AppText>
+                      <AppText variant="body" color={colors.inkSoft}>
+                        {medication.strength} ·{' '}
+                        {doseAmountLabel(medication.form, medication.unitsPerDose)}
+                      </AppText>
+                      <AppText variant="caption" color={colors.inkMuted}>
+                        Medicamento {index + 1} de {result.medications.length}
+                      </AppText>
+                    </View>
+                  </View>
+
+                  <View style={styles.grid}>
+                    <ResultItem
+                      icon="repeat"
+                      label="Frecuencia"
+                      value={`Cada ${medication.frequencyHours} h`}
+                    />
+                    <ResultItem
+                      icon="time-outline"
+                      label="Primera toma"
+                      value={formatTime(
+                        combineDateTime(toDateKey(new Date()), medication.startTime),
+                      )}
+                    />
+                    <ResultItem
+                      icon="calendar-outline"
+                      label="Duración"
+                      value={`${medication.durationDays} días`}
+                    />
+                    <ResultItem
+                      icon="layers-outline"
+                      label="Inventario"
+                      value={`${medication.totalPills} ${stockNoun(
+                        medication.form,
+                        medication.totalPills,
+                      )}`}
+                    />
+                    <ResultItem
+                      icon="medkit-outline"
+                      label="Forma"
+                      value={formLabel(medication.form)}
+                    />
+                  </View>
+
+                  {medication.notes ? (
+                    <View style={styles.notes}>
+                      <Ionicons
+                        name="information-circle-outline"
+                        size={15}
+                        color={colors.inkMuted}
+                      />
+                      <AppText
+                        variant="caption"
+                        color={colors.inkSoft}
+                        style={styles.notesText}
+                      >
+                        {medication.notes}
+                      </AppText>
+                    </View>
                   ) : null}
                 </View>
-              </View>
-
-              <View style={styles.grid}>
-                <ResultItem
-                  icon="repeat"
-                  label="Frecuencia"
-                  value={`Cada ${result.frequencyHours} h`}
-                />
-                <ResultItem
-                  icon="time-outline"
-                  label="Primera toma"
-                  value={formatTime(
-                    combineDateTime(toDateKey(new Date()), result.startTime),
-                  )}
-                />
-                <ResultItem
-                  icon="calendar-outline"
-                  label="Duración"
-                  value={`${result.durationDays} días`}
-                />
-                <ResultItem
-                  icon="layers-outline"
-                  label="Inventario"
-                  value={`${result.totalPills} ${stockNoun(
-                    result.form,
-                    result.totalPills,
-                  )}`}
-                />
-                <ResultItem
-                  icon="medkit-outline"
-                  label="Forma"
-                  value={formLabel(result.form)}
-                />
-              </View>
-
-              {result.notes ? (
-                <View style={styles.notes}>
-                  <Ionicons name="information-circle-outline" size={15} color={colors.inkMuted} />
-                  <AppText variant="caption" color={colors.inkSoft} style={styles.notesText}>
-                    {result.notes}
-                  </AppText>
-                </View>
-              ) : null}
+              ))}
             </Card>
 
             {result.warnings.length > 0 ? (
@@ -441,7 +469,11 @@ export default function ScanScreen() {
             ) : null}
 
             <Button
-              label="Revisar y continuar"
+              label={
+                result.medications.length > 1
+                  ? `Revisar los ${result.medications.length} medicamentos`
+                  : 'Revisar y continuar'
+              }
               icon="arrow-forward"
               fullWidth
               onPress={continueToWizard}
@@ -749,6 +781,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 7,
     flex: 1,
+  },
+  resultTitleText: { flex: 1, gap: 1 },
+  medBlock: { gap: spacing.md },
+  medBlockBorder: {
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: spacing.lg,
   },
   medRow: {
     flexDirection: 'row',

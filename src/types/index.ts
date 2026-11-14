@@ -76,8 +76,7 @@ export interface ChatMessage {
   source?: 'demo' | 'ai';
 }
 
-export interface PrescriptionExtraction {
-  patientName?: string;
+export interface ExtractedMedication {
   medicationName: string;
   strength: string;
   form: MedicationForm;
@@ -87,6 +86,12 @@ export interface PrescriptionExtraction {
   durationDays: number;
   totalPills: number;
   notes?: string;
+}
+
+export interface PrescriptionExtraction {
+  patientName?: string;
+  /** Todos los medicamentos que aparecen en la receta. */
+  medications: ExtractedMedication[];
   confidence: number;
   warnings: string[];
   source: 'demo' | 'ai';

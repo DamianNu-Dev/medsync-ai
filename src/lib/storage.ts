@@ -29,7 +29,10 @@ export async function loadPersistedState(): Promise<AppState | null> {
       roleChosen: typeof parsed.roleChosen === 'boolean' ? parsed.roleChosen : true,
       linkedPatientCode: parsed.linkedPatientCode ?? null,
       alarmEnabled: parsed.alarmEnabled !== false,
-      scanDraft: parsed.scanDraft ?? null,
+      scanDraft:
+        parsed.scanDraft && Array.isArray(parsed.scanDraft.medications)
+          ? parsed.scanDraft
+          : null,
       toast: null,
     };
   } catch {

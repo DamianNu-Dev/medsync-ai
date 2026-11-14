@@ -35,7 +35,11 @@ import { warningFeedback } from '@/lib/haptics';
 import { getTreatmentTimesPerDay } from '@/lib/schedule';
 import { useApp } from '@/store/AppProvider';
 import { useNow } from '@/hooks/useNow';
-import { MedicationForm, NewTreatmentInput } from '@/types';
+import {
+  ExtractedMedication,
+  MedicationForm,
+  NewTreatmentInput,
+} from '@/types';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -64,6 +68,21 @@ function defaultStartTime(): string {
   return minutesToHHMM(minutesOfDay(next));
 }
 
+function formFromMedication(medication?: ExtractedMedication): FormState {
+  return {
+    name: medication?.medicationName ?? '',
+    strength: medication?.strength ?? '',
+    form: medication?.form ?? 'tablet',
+    unitsPerDose: medication?.unitsPerDose ?? 1,
+    frequencyHours: medication?.frequencyHours ?? 12,
+    startTime: medication?.startTime ?? defaultStartTime(),
+    durationDays: medication?.durationDays ?? 30,
+    totalPills: medication?.totalPills ? String(medication.totalPills) : '',
+    lowStockThreshold: 5,
+    notes: medication?.notes ?? '',
+  };
+}
+
 export default function NewTreatmentScreen() {
   const { state, actions } = useApp();
   const now = useNow(60_000);
@@ -71,21 +90,14 @@ export default function NewTreatmentScreen() {
   const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
 
   const draft = state.scanDraft;
+  const draftMedications = draft?.medications ?? [];
+  const isMultiMedication = draftMedications.length > 1;
 
   const [step, setStep] = useState(0);
   const [errors, setErrors] = useState<Errors>({});
-  const [form, setForm] = useState<FormState>(() => ({
-    name: draft?.medicationName ?? '',
-    strength: draft?.strength ?? '',
-    form: draft?.form ?? 'tablet',
-    unitsPerDose: draft?.unitsPerDose ?? 1,
-    frequencyHours: draft?.frequencyHours ?? 12,
-    startTime: draft?.startTime ?? defaultStartTime(),
-    durationDays: draft?.durationDays ?? 30,
-    totalPills: draft?.totalPills ? String(draft.totalPills) : '',
-    lowStockThreshold: 5,
-    notes: draft?.notes ?? '',
-  }));
+  const [form, setForm] = useState<FormState>(() =>
+    formFromMedication(draftMedications[0]),
+  );
 
   const timesPerDay = getTreatmentTimesPerDay(form.frequencyHours);
   const neededPills = useMemo(
@@ -205,6 +217,173 @@ export default function NewTreatmentScreen() {
     setStep((current) => current - 1);
     scrollTop();
   };
+
+  const saveAllMedications = () => {
+    if (draftMedications.length === 0) return;
+    for (const medication of draftMedications) {
+      const input: NewTreatmentInput = {
+        name: medication.medicationName,
+        strength: medication.strength.trim() || 'Concentración no indicada',
+        form: medication.form,
+        unitsPerDose: medication.unitsPerDose,
+        frequencyHours: medication.frequencyHours,
+        startTime: medication.startTime,
+        durationDays: medication.durationDays,
+        totalPills: medication.totalPills,
+        lowStockThreshold: 5,
+        notes: medication.notes,
+      };
+      actions.addTreatment(input);
+    }
+    actions.showToast(
+      `${draftMedications.length} tratamientos agregados a tu calendario`,
+      'success',
+    );
+    router.replace('/treatments');
+  };
+
+  if (isMultiMedication) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+        <View style={styles.header}>
+          <Pressable
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="Volver al escáner"
+            style={({ pressed }) => [styles.headerButton, pressed ? styles.pressed : null]}
+          >
+            <Ionicons name="close" size={22} color={colors.ink} />
+          </Pressable>
+          <View style={styles.headerText}>
+            <AppText variant="caption" color={colors.inkMuted} weight="semibold">
+              Receta escaneada
+            </AppText>
+            <AppText variant="h3" weight="bold">
+              Revisar {draftMedications.length} medicamentos
+            </AppText>
+          </View>
+          <View style={styles.headerSpacer} />
+        </View>
+
+        <ScrollView
+          style={styles.flex}
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.stepContent}>
+            <StepHeading
+              title="Encontramos estos medicamentos"
+              subtitle="Compara cada uno con tu receta. Al confirmar se agregan todos a tu calendario."
+            />
+
+            {draftMedications.map((medication, index) => (
+              <Card
+                key={`${medication.medicationName}-${index}`}
+                style={styles.multiCard}
+              >
+                <View style={styles.multiHeader}>
+                  <View style={styles.multiIndex}>
+                    <AppText variant="caption" weight="bold" color={colors.white}>
+                      {index + 1}
+                    </AppText>
+                  </View>
+                  <View style={styles.multiTitle}>
+                    <AppText variant="h3" weight="bold">
+                      {medication.medicationName}
+                    </AppText>
+                    <AppText variant="body" color={colors.inkSoft}>
+                      {medication.strength} · {formLabel(medication.form)} ·{' '}
+                      {medication.unitsPerDose}{' '}
+                      {unitNoun(medication.form, medication.unitsPerDose)}
+                    </AppText>
+                  </View>
+                </View>
+
+                <View style={styles.summaryGrid}>
+                  <SummaryItem
+                    icon="repeat"
+                    label="Frecuencia"
+                    value={`Cada ${medication.frequencyHours} h`}
+                  />
+                  <SummaryItem
+                    icon="time-outline"
+                    label="Primera toma"
+                    value={formatTime(nextDateForTime(medication.startTime, now))}
+                  />
+                  <SummaryItem
+                    icon="calendar-outline"
+                    label="Duración"
+                    value={`${medication.durationDays} días`}
+                  />
+                  <SummaryItem
+                    icon="layers-outline"
+                    label="Inventario"
+                    value={`${medication.totalPills} ${stockNoun(
+                      medication.form,
+                      medication.totalPills,
+                    )}`}
+                  />
+                </View>
+
+                {medication.notes ? (
+                  <View style={styles.multiNote}>
+                    <Ionicons
+                      name="information-circle-outline"
+                      size={15}
+                      color={colors.inkMuted}
+                    />
+                    <AppText variant="caption" color={colors.inkSoft} style={styles.tipText}>
+                      {medication.notes}
+                    </AppText>
+                  </View>
+                ) : null}
+              </Card>
+            ))}
+
+            {draft && Array.isArray(draft.warnings) && draft.warnings.length > 0 ? (
+              <Card tone="warningSoft" style={styles.multiWarnings}>
+                <View style={styles.multiWarningsTitle}>
+                  <Ionicons name="alert-circle-outline" size={18} color={colors.warning} />
+                  <AppText variant="bodyStrong" color={colors.warning}>
+                    Revisa antes de guardar
+                  </AppText>
+                </View>
+                {draft.warnings.map((warning) => (
+                  <AppText
+                    key={warning}
+                    variant="caption"
+                    color={colors.inkSoft}
+                    style={styles.multiWarningText}
+                  >
+                    • {warning}
+                  </AppText>
+                ))}
+              </Card>
+            ) : null}
+
+            <Card tone="successSoft" style={styles.privacy}>
+              <Ionicons name="shield-checkmark-outline" size={18} color={colors.success} />
+              <AppText variant="caption" color={colors.inkSoft} style={styles.tipText}>
+                Después puedes ajustar inventario, horarios o notas de cada tratamiento en
+                la pestaña Tratamientos.
+              </AppText>
+            </Card>
+          </View>
+        </ScrollView>
+
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+          <Button
+            label={`Agregar ${draftMedications.length} tratamientos`}
+            icon="checkmark"
+            iconPosition="left"
+            size="md"
+            onPress={saveAllMedications}
+            style={styles.footerButtonPrimary}
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -731,6 +910,37 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   summaryItemText: { flex: 1, minWidth: 0, gap: 0 },
+  multiCard: { gap: spacing.lg },
+  multiHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  multiIndex: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  multiTitle: { flex: 1, gap: 2 },
+  multiNote: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: spacing.md,
+  },
+  multiWarnings: { gap: 4 },
+  multiWarningsTitle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 2,
+  },
+  multiWarningText: { lineHeight: 18, paddingLeft: 2 },
   useSuggested: {
     backgroundColor: colors.primarySoft,
     borderRadius: radius.pill,
