@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import {
   AndroidAudioContentType,
@@ -10,6 +9,7 @@ import {
 } from 'expo-notifications';
 import { Linking, Platform } from 'react-native';
 
+import { isExpoGo } from '@/lib/environment';
 import { Dose, Treatment } from '@/types';
 
 const CHANNEL_ID = 'medsync-alarm';
@@ -23,8 +23,6 @@ const EXACT_ALARM_PROMPT_KEY = '@medsync-ai/exact-alarm-prompted/v1';
  * permiso de alarmas exactas en su propio manifiesto. En la app instalada
  * (development/production build) sí se usan.
  */
-const isExpoGo = Constants.executionEnvironment === 'storeClient';
-
 function alarmSound(): string | undefined {
   return isExpoGo ? undefined : ALARM_SOUND;
 }

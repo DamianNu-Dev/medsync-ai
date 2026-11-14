@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, radius, spacing } from '@/constants/theme';
 import { configurePlayer } from '@/lib/audio';
 import { formatTime } from '@/lib/date';
+import { supportsLockScreenControls } from '@/lib/environment';
 import { successFeedback } from '@/lib/haptics';
 import { useNow } from '@/hooks/useNow';
 import { useAuth } from '@/store/AuthProvider';
@@ -75,20 +76,23 @@ export function DoseAlarm() {
   }, [authKey]);
 
   // Sonar también con el teléfono en silencio y al bloquear la pantalla.
+  // En Expo Go el servicio de segundo plano no existe, así que no se pide.
   useEffect(() => {
     void setAudioModeAsync({
       playsInSilentMode: true,
-      shouldPlayInBackground: true,
+      shouldPlayInBackground: supportsLockScreenControls,
       interruptionMode: 'doNotMix',
     }).catch(() => undefined);
   }, []);
 
   useEffect(() => {
     if (!active || !activeDoseId) {
-      try {
-        player.setActiveForLockScreen(false);
-      } catch {
-        // Expo Go no incluye el servicio de reproducción en segundo plano.
+      if (supportsLockScreenControls) {
+        try {
+          player.setActiveForLockScreen(false);
+        } catch {
+          // El servicio puede no estar disponible todavía.
+        }
       }
       try {
         player.pause();
@@ -101,13 +105,15 @@ export function DoseAlarm() {
 
     try {
       configurePlayer(player, { loop: true, volume: 1, restart: true });
-      player.setActiveForLockScreen(true, {
-        title: activeTreatmentName
-          ? `Hora de ${activeTreatmentName}`
-          : 'Hora de tu toma',
-        artist: 'MedSync AI',
-        albumTitle: 'Alarma de medicamento',
-      });
+      if (supportsLockScreenControls) {
+        player.setActiveForLockScreen(true, {
+          title: activeTreatmentName
+            ? `Hora de ${activeTreatmentName}`
+            : 'Hora de tu toma',
+          artist: 'MedSync AI',
+          albumTitle: 'Alarma de medicamento',
+        });
+      }
     } catch {
       // En Expo Go o en la web puede no estar disponible.
     }
@@ -120,10 +126,12 @@ export function DoseAlarm() {
     Vibration.vibrate([0, 700, 300, 700], true);
 
     return () => {
-      try {
-        player.setActiveForLockScreen(false);
-      } catch {
-        // no-op
+      if (supportsLockScreenControls) {
+        try {
+          player.setActiveForLockScreen(false);
+        } catch {
+          // no-op
+        }
       }
       try {
         player.pause();
