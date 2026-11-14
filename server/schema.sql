@@ -47,44 +47,35 @@ create table if not exists patient_states (
 create index if not exists idx_patient_states_updated_at on patient_states(updated_at);
 
 -- ============================================================================
--- Row Level Security (RLS)
+-- Seguridad (RLS)
+-- ============================================================================
+-- Toda la base de datos se usa ÚNICAMENTE desde el backend (Node.js en Render),
+-- que guarda sus claves en variables de entorno del servidor y nunca las envía
+-- a la app. El teléfono nunca habla directo con Supabase.
+--
+-- Por eso RLS se desactiva aquí: con RLS activo y sin sesión de Supabase Auth,
+-- las políticas basadas en auth.uid() bloqueaban TODAS las consultas del
+-- backend y el registro/login fallaban con "Error al buscar usuario".
+-- El backend además usa SUPABASE_SERVICE_ROLE_KEY cuando está disponible.
+--
+-- Si en el futuro expones Supabase directamente al cliente, vuelve a activar
+-- RLS y crea políticas basadas en auth.uid().
 -- ============================================================================
 
--- Usuarios: cada uno solo puede ver su propio perfil
-alter table users enable row level security;
-create policy "users_select_own" on users
-  for select using (auth.uid()::text = id::text or email = auth.email());
-create policy "users_insert_own" on users
-  for insert with check (true); -- registro público permitido
-create policy "users_update_own" on users
-  for update using (auth.uid()::text = id::text);
+alter table users disable row level security;
+alter table sessions disable row level security;
+alter table patient_states disable row level security;
 
--- Sesiones: solo el dueño puede ver/crear/borrar sus sesiones
-alter table sessions enable row level security;
-create policy "sessions_select_own" on sessions
-  for select using (auth.uid()::text = user_id::text);
-create policy "sessions_insert_own" on sessions
-  for insert with check (true);
-create policy "sessions_delete_own" on sessions
-  for delete using (auth.uid()::text = user_id::text);
-
--- Estados de pacientes: solo el paciente dueño puede leer/escribir
--- Los cuidadores vinculados pueden leer el estado del paciente al que están vinculados
-alter table patient_states enable row level security;
-create policy "patient_states_select_owner" on patient_states
-  for select using (
-    auth.uid()::text = user_id::text
-    or exists (
-      select 1 from users
-      where users.id = patient_states.user_id
-        and users.linked_patient_id = auth.uid()
-        and users.role = 'caregiver'
-    )
-  );
-create policy "patient_states_insert_owner" on patient_states
-  for insert with check (auth.uid()::text = user_id::text);
-create policy "patient_states_update_owner" on patient_states
-  for update using (auth.uid()::text = user_id::text);
+-- Elimina políticas antiguas (por si ya se habían creado)
+drop policy if exists "users_select_own" on users;
+drop policy if exists "users_insert_own" on users;
+drop policy if exists "users_update_own" on users;
+drop policy if exists "sessions_select_own" on sessions;
+drop policy if exists "sessions_insert_own" on sessions;
+drop policy if exists "sessions_delete_own" on sessions;
+drop policy if exists "patient_states_select_owner" on patient_states;
+drop policy if exists "patient_states_insert_owner" on patient_states;
+drop policy if exists "patient_states_update_owner" on patient_states;
 
 -- ============================================================================
 -- Función para limpiar sesiones expiradas (opcional, ejecutar periódicamente)

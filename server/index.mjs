@@ -2,7 +2,6 @@ import http from 'node:http';
 import os from 'node:os';
 
 import {
-  createId,
   createToken,
   generatePatientCode,
   hashPassword,
@@ -15,6 +14,7 @@ import { createDemoPatientState, createEmptyPatientState } from './demo-state.mj
 import {
   isSupabaseConfigured,
   supabaseQuery,
+  usingServiceRole,
 } from './supabase.mjs';
 
 const PORT = Number(process.env.PORT ?? 4000);
@@ -94,7 +94,7 @@ function sanitizePatientState(user, incoming) {
       ...incoming.profile,
       name: user.name,
       firstName: firstNameOf(user.name),
-      caregiverCode: user.patientCode,
+      caregiverCode: user.patient_code ?? user.patientCode ?? null,
       caregiverName: normalizeText(incoming.profile.caregiverName, 80) || 'Tu cuidador',
       phone: normalizeText(incoming.profile.phone, 40),
     },
@@ -105,23 +105,48 @@ function sanitizePatientState(user, incoming) {
   };
 }
 
+/**
+ * Traduce errores de Supabase a mensajes entendibles y deja el detalle en los
+ * logs del servidor para poder diagnosticar desde Render.
+ */
+function databaseError(error, fallback) {
+  const detail = String(error?.message ?? '');
+  console.error('[medsync] error de base de datos:', detail || error);
+  if (/invalid api key|invalid jwt|no api key|jwt/i.test(detail)) {
+    return new HttpError(
+      500,
+      'El servidor no tiene una clave válida de Supabase. Revisa las variables de entorno.',
+    );
+  }
+  if (/relation .* does not exist|schema cache/i.test(detail)) {
+    return new HttpError(
+      500,
+      'Faltan las tablas en Supabase. Ejecuta el archivo server/schema.sql en el editor SQL.',
+    );
+  }
+  return new HttpError(500, fallback);
+}
+
 async function findUserByEmail(email) {
-  return supabaseQuery((client) =>
+  const { data, error } = await supabaseQuery((client) =>
     client.from('users').select('*').eq('email', email).maybeSingle(),
-  ).then(({ data, error }) => {
-    if (error) throw new HttpError(500, 'Error al buscar usuario.');
-    return data ?? null;
-  });
+  );
+  if (error) throw databaseError(error, 'Error al buscar usuario.');
+  return data ?? null;
 }
 
 async function findPatientByCode(code) {
   const normalized = normalizeText(code, 20).toUpperCase();
-  return supabaseQuery((client) =>
-    client.from('users').select('*').eq('role', 'patient').eq('patient_code', normalized).maybeSingle(),
-  ).then(({ data, error }) => {
-    if (error) throw new HttpError(500, 'Error al buscar paciente.');
-    return data ?? null;
-  });
+  const { data, error } = await supabaseQuery((client) =>
+    client
+      .from('users')
+      .select('*')
+      .eq('role', 'patient')
+      .eq('patient_code', normalized)
+      .maybeSingle(),
+  );
+  if (error) throw databaseError(error, 'Error al buscar paciente.');
+  return data ?? null;
 }
 
 async function getUserFromSessions(token) {
@@ -153,16 +178,6 @@ async function requireUser(req) {
   if (!user)
     throw new HttpError(401, 'Tu sesión expiró. Vuelve a iniciar sesión.');
   return user;
-}
-
-function patientPayload(patient) {
-  return {
-    id: patient.id,
-    name: patient.name,
-    code: patient.patient_code,
-    state: patient.state_json ?? null,
-    updatedAt: patient.updated_at,
-  };
 }
 
 async function sessionPayload(user) {
@@ -211,14 +226,6 @@ async function sessionPayload(user) {
     }
   }
   return payload;
-}
-
-async function countUserSessions(userId) {
-  const { count, error } = await supabaseQuery((client) =>
-    client.from('sessions').select('*', { count: 'exact', head: true }).eq('user_id', userId),
-  );
-  if (error) return 0;
-  return count ?? 0;
 }
 
 async function createSessionDb(user) {
@@ -292,7 +299,7 @@ async function seedDemoAccounts() {
     );
 
     const diegoPassword = hashPassword('demo1234');
-    const { data: diego, error: diegoError } = await supabaseQuery((client) =>
+    const { error: diegoError } = await supabaseQuery((client) =>
       client
         .from('users')
         .insert({
@@ -440,12 +447,32 @@ async function route(req, res) {
   }
 
   if (method === 'GET' && path === '/api/health') {
+    let database = 'not_configured';
+    let databaseError = null;
+    if (isSupabaseConfigured()) {
+      try {
+        const { error } = await supabaseQuery((client) =>
+          client.from('users').select('id', { head: true, count: 'exact' }),
+        );
+        if (error) {
+          database = 'error';
+          databaseError = error.message;
+        } else {
+          database = 'supabase';
+        }
+      } catch (error) {
+        database = 'error';
+        databaseError = error.message;
+      }
+    }
     send(res, 200, {
       ok: true,
       service: 'medsync-ai-backend',
       version: 1,
       time: new Date().toISOString(),
-      database: isSupabaseConfigured() ? 'supabase' : 'not_configured',
+      database,
+      key: usingServiceRole() ? 'service_role' : 'anon',
+      ...(databaseError ? { databaseError } : {}),
     });
     return;
   }
@@ -453,7 +480,7 @@ async function route(req, res) {
   if (!isSupabaseConfigured()) {
     send(res, 503, {
       error:
-        'El backend no está configurado. Falta SUPABASE_URL o SUPABASE_ANON_KEY.',
+        'El backend no está configurado. Faltan SUPABASE_URL y una clave (SUPABASE_SERVICE_ROLE_KEY o SUPABASE_ANON_KEY).',
     });
     return;
   }
@@ -646,16 +673,40 @@ function localAddresses() {
   return addresses;
 }
 
-server.listen(PORT, HOST, () => {
+server.listen(PORT, HOST, async () => {
   console.log(`MedSync AI backend escuchando en http://localhost:${PORT}`);
   for (const address of localAddresses()) {
     console.log(`  En tu teléfono: http://${address}:${PORT}`);
   }
-  console.log('Base de datos: Supabase');
   console.log('Cuentas demo: rosa@medsync.app / diego@medsync.app · demo1234');
+
+  const anonKey = String(process.env.SUPABASE_ANON_KEY ?? '').trim();
+  if (anonKey.startsWith('sbp_')) {
+    console.warn(
+      'ADVERTENCIA: SUPABASE_ANON_KEY parece un token de administración (sbp_...). ' +
+        'Usa la clave anon/service_role del proyecto.',
+    );
+  }
+
   if (!isSupabaseConfigured()) {
     console.warn(
-      'ADVERTENCIA: SUPABASE_URL o SUPABASE_ANON_KEY no configurados.',
+      'ADVERTENCIA: SUPABASE_URL y las claves de Supabase no están configuradas.',
     );
+    return;
+  }
+
+  try {
+    const { error } = await supabaseQuery((client) =>
+      client.from('users').select('id', { head: true, count: 'exact' }),
+    );
+    if (error) {
+      console.error('Base de datos: ERROR →', error.message);
+    } else {
+      console.log(
+        `Base de datos: Supabase (${usingServiceRole() ? 'service_role' : 'anon'})`,
+      );
+    }
+  } catch (error) {
+    console.error('Base de datos: ERROR →', error.message);
   }
 });

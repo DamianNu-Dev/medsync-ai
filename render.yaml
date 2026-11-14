@@ -5,12 +5,14 @@ services:
     buildCommand: "pnpm install --frozen-lockfile"
     startCommand: "pnpm run server"
     envVars:
+      # Los valores reales se configuran en el panel de Render (Environment).
+      # `sync: false` evita que el blueprint escriba placeholders como valor.
       - key: SUPABASE_URL
-        value: TU_SUPABASE_URL
+        sync: false
       - key: SUPABASE_ANON_KEY
-        value: TU_SUPABASE_ANON_KEY
+        sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
-        value: TU_SUPABASE_SERVICE_ROLE_KEY
+        sync: false
       - key: PORT
         value: 4000
       - key: HOST

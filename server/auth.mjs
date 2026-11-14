@@ -33,7 +33,7 @@ export function isValidEmail(value) {
 export function generatePatientCode(users) {
   const used = new Set(
     users
-      .map((user) => user.patientCode)
+      .map((user) => user.patient_code ?? user.patientCode)
       .filter((code) => typeof code === 'string')
       .map((code) => code.toUpperCase()),
   );
@@ -50,8 +50,9 @@ export function publicUser(user) {
     name: user.name,
     email: user.email,
     role: user.role,
-    patientCode: user.role === 'patient' ? user.patientCode : null,
-    linkedPatientId: user.linkedPatientId ?? null,
-    createdAt: user.createdAt,
+    patientCode:
+      user.role === 'patient' ? (user.patient_code ?? user.patientCode ?? null) : null,
+    linkedPatientId: user.linked_patient_id ?? user.linkedPatientId ?? null,
+    createdAt: user.created_at ?? user.createdAt,
   };
 }
