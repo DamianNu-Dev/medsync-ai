@@ -249,64 +249,73 @@ async function createSessionDb(user) {
 }
 
 async function seedDemoAccounts() {
-  const { data: existing } = await supabaseQuery((client) =>
-    client.from('users').select('id').limit(1),
-  );
-  if (existing && existing.length > 0) return;
+  try {
+    const { data: existing } = await supabaseQuery((client) =>
+      client.from('users').select('id').limit(1),
+    );
+    if (existing && existing.length > 0) return;
 
-  const password = hashPassword('demo1234');
-  const now = new Date().toISOString();
+    const password = hashPassword('demo1234');
+    const now = new Date().toISOString();
 
-  const rosaState = createDemoPatientState('Rosa Martínez', 'MED-4821', 'Diego Martínez');
+    const rosaState = createDemoPatientState('Rosa Martínez', 'MED-4821', 'Diego Martínez');
 
-  const { data: rosa, error: rosaError } = await supabaseQuery((client) =>
-    client
-      .from('users')
-      .insert({
-        name: 'Rosa Martínez',
-        email: 'rosa@medsync.app',
-        role: 'patient',
-        patient_code: 'MED-4821',
-        linked_patient_id: null,
-        password_salt: password.salt,
-        password_hash: password.hash,
-        created_at: now,
+    const { data: rosa, error: rosaError } = await supabaseQuery((client) =>
+      client
+        .from('users')
+        .insert({
+          name: 'Rosa Martínez',
+          email: 'rosa@medsync.app',
+          role: 'patient',
+          patient_code: 'MED-4821',
+          linked_patient_id: null,
+          password_salt: password.salt,
+          password_hash: password.hash,
+          created_at: now,
+          updated_at: now,
+        })
+        .select()
+        .single(),
+    );
+
+    if (rosaError) {
+      console.warn('[medsync] No se pudo crear cuenta demo de paciente:', rosaError.message);
+      return;
+    }
+
+    await supabaseQuery((client) =>
+      client.from('patient_states').insert({
+        user_id: rosa.id,
+        state: rosaState,
         updated_at: now,
-      })
-      .select()
-      .single(),
-  );
+      }),
+    );
 
-  if (rosaError) throw new HttpError(500, 'Error al crear cuenta demo de paciente.');
+    const diegoPassword = hashPassword('demo1234');
+    const { data: diego, error: diegoError } = await supabaseQuery((client) =>
+      client
+        .from('users')
+        .insert({
+          name: 'Diego Martínez',
+          email: 'diego@medsync.app',
+          role: 'caregiver',
+          patient_code: null,
+          linked_patient_id: rosa.id,
+          password_salt: diegoPassword.salt,
+          password_hash: diegoPassword.hash,
+          created_at: now,
+          updated_at: now,
+        })
+        .select()
+        .single(),
+    );
 
-  await supabaseQuery((client) =>
-    client.from('patient_states').insert({
-      user_id: rosa.id,
-      state: rosaState,
-      updated_at: now,
-    }),
-  );
-
-  const diegoPassword = hashPassword('demo1234');
-  const { data: diego, error: diegoError } = await supabaseQuery((client) =>
-    client
-      .from('users')
-      .insert({
-        name: 'Diego Martínez',
-        email: 'diego@medsync.app',
-        role: 'caregiver',
-        patient_code: null,
-        linked_patient_id: rosa.id,
-        password_salt: diegoPassword.salt,
-        password_hash: diegoPassword.hash,
-        created_at: now,
-        updated_at: now,
-      })
-      .select()
-      .single(),
-  );
-
-  if (diegoError) throw new HttpError(500, 'Error al crear cuenta demo de cuidador.');
+    if (diegoError) {
+      console.warn('[medsync] No se pudo crear cuenta demo de cuidador:', diegoError.message);
+    }
+  } catch (error) {
+    console.warn('[medsync] Seed de cuentas demo omitido:', error.message);
+  }
 }
 
 async function register(body) {
