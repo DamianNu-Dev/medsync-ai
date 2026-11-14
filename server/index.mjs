@@ -105,14 +105,23 @@ function sanitizePatientState(user, incoming) {
   };
 }
 
+function describeDatabaseError(error, statusOverride) {
+  const message = String(error?.message ?? '').trim();
+  if (message) return message;
+  const status = error?.status ?? statusOverride;
+  const statusText = String(error?.statusText ?? '').trim();
+  const http = status ? `HTTP ${status}` : '';
+  return [http, statusText].filter(Boolean).join(' ') || 'Error desconocido';
+}
+
 /**
  * Traduce errores de Supabase a mensajes entendibles y deja el detalle en los
  * logs del servidor para poder diagnosticar desde Render.
  */
 function databaseError(error, fallback) {
-  const detail = String(error?.message ?? '');
-  console.error('[medsync] error de base de datos:', detail || error);
-  if (/invalid api key|invalid jwt|no api key|jwt/i.test(detail)) {
+  const detail = describeDatabaseError(error);
+  console.error('[medsync] error de base de datos:', detail);
+  if (/invalid api key|invalid jwt|no api key|jwt|HTTP 401/i.test(detail)) {
     return new HttpError(
       500,
       'El servidor no tiene una clave válida de Supabase. Revisa las variables de entorno.',
@@ -451,18 +460,18 @@ async function route(req, res) {
     let databaseError = null;
     if (isSupabaseConfigured()) {
       try {
-        const { error } = await supabaseQuery((client) =>
+        const result = await supabaseQuery((client) =>
           client.from('users').select('id', { head: true, count: 'exact' }),
         );
-        if (error) {
+        if (result.error) {
           database = 'error';
-          databaseError = error.message;
+          databaseError = describeDatabaseError(result.error, result.status);
         } else {
           database = 'supabase';
         }
       } catch (error) {
         database = 'error';
-        databaseError = error.message;
+        databaseError = describeDatabaseError(error);
       }
     }
     send(res, 200, {
@@ -700,13 +709,13 @@ server.listen(PORT, HOST, async () => {
       client.from('users').select('id', { head: true, count: 'exact' }),
     );
     if (error) {
-      console.error('Base de datos: ERROR →', error.message);
+      console.error('Base de datos: ERROR →', describeDatabaseError(error));
     } else {
       console.log(
         `Base de datos: Supabase (${usingServiceRole() ? 'service_role' : 'anon'})`,
       );
     }
   } catch (error) {
-    console.error('Base de datos: ERROR →', error.message);
+    console.error('Base de datos: ERROR →', describeDatabaseError(error));
   }
 });
