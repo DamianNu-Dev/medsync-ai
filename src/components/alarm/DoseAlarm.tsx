@@ -35,6 +35,7 @@ export function DoseAlarm() {
   } | null>(null);
   const player = useAudioPlayer(require('../../../assets/alarm.wav'));
   const successTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const alarmReadyRef = useRef(false);
 
   const data = useMemo(() => getDashboardData(state, now), [state, now]);
 
@@ -50,7 +51,17 @@ export function DoseAlarm() {
     state.role === 'patient' &&
     state.alarmEnabled &&
     Boolean(target) &&
-    !completed;
+    !completed &&
+    alarmReadyRef.current;
+
+  useEffect(() => {
+    // Pequeño retraso antes de activar la alarma al cargar la app
+    // para que el usuario vea la pantalla primero
+    const timer = setTimeout(() => {
+      alarmReadyRef.current = true;
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (!active) {

@@ -9,6 +9,24 @@ export interface AISettings {
 
 const STORAGE_KEY = '@medsync-ai/ai-settings/v1';
 
+// Modelos válidos disponibles en Groq (verificado en la API)
+const VALID_GROQ_MODELS = [
+  'qwen/qwen3.8-27b',
+  'openai/gpt-oss-20b',
+  'openai/gpt-oss-120b',
+  'allam-2-7b',
+];
+
+function isValidGroqModel(model: string): boolean {
+  return VALID_GROQ_MODELS.includes(model) || model.startsWith('meta-llama/');
+}
+
+function fixInvalidModel(model: string): string {
+  if (isValidGroqModel(model)) return model;
+  // Si el modelo no es válido, usar el por defecto
+  return 'qwen/qwen3.8-27b';
+}
+
 export function defaultAISettings(): AISettings {
   return {
     baseUrl: (process.env.EXPO_PUBLIC_AI_BASE_URL ?? 'https://api.groq.com/openai/v1').replace(
@@ -30,8 +48,8 @@ function normalize(settings: AISettings): AISettings {
   return {
     baseUrl: settings.baseUrl.trim().replace(/\/$/, ''),
     apiKey: settings.apiKey.trim(),
-    model: settings.model.trim(),
-    visionModel: settings.visionModel.trim(),
+    model: fixInvalidModel(settings.model.trim()),
+    visionModel: fixInvalidModel(settings.visionModel.trim()),
   };
 }
 
@@ -41,6 +59,7 @@ export async function loadAISettings(): Promise<AISettings | null> {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<AISettings>;
     if (!parsed || typeof parsed !== 'object') return null;
+    // Los valores guardados sobrescriben los defaults, pero se validan
     return normalize({ ...defaultAISettings(), ...parsed });
   } catch {
     return null;
