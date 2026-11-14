@@ -202,11 +202,13 @@ Los datos demo se generan relativos a la hora de apertura para que siempre haya 
 
 ## Notificaciones y permisos
 
-- `expo-notifications` agenda recordatorios locales (máximo 60, próximos 7 días) para las tomas pendientes del rol paciente.
+- `expo-notifications` agenda recordatorios locales (hasta 200 avisos, próximos 30 días) para las tomas pendientes del rol paciente.
+- Las notificaciones usan el canal Android `medsync-alarm` (importancia máxima, audio tipo alarma) y alarmas exactas (`SCHEDULE_EXACT_ALARM`) en builds instalados.
 - Las notificaciones solo abren la app; la alarma interna es la que exige la verificación visual.
 - En Expo Go las notificaciones locales funcionan, pero el push remoto no está soportado.
 - La cámara frontal se usa para verificar la pastilla; el permiso se solicita dentro del modal de verificación.
-- La app necesita un **development build** (`npx expo run:ios|android` o `eas build`) porque `expo-camera`, `expo-notifications` y `expo-audio` incluyen código nativo.
+- La app necesita un **build instalado** (`eas build`) porque `expo-camera`, `expo-notifications` y `expo-audio` incluyen código nativo, y las alarmas exactas/sonido propio no existen en Expo Go.
+- Guía paso a paso para generar el APK: [`docs/BUILD.md`](docs/BUILD.md).
 
 ---
 
