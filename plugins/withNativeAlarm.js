@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { withAndroidManifest, withMainApplication } = require('expo/config-plugins');
+const { withAndroidManifest } = require('expo/config-plugins');
 
 const NATIVE_ALARM_DIR = path.join(__dirname, '..', 'android-native-alarm');
 
@@ -14,8 +14,12 @@ const NATIVE_ALARM_DIR = path.join(__dirname, '..', 'android-native-alarm');
  */
 function withNativeAlarm(config) {
   config = withAndroidManifest(config, (config) => {
+    const root = config.projectRoot || process.cwd();
+    const androidDir = path.join(root, 'android');
     const manifest = config.modResults.manifest;
     const application = manifest.application?.[0];
+
+    // ============ MODIFICAR MANIFIESTO ============
 
     // --- Permisos ---
     const permissions = manifest['uses-permission'] || [];
@@ -86,48 +90,28 @@ function withNativeAlarm(config) {
     }
     application.activity = activities;
 
-    return config;
-  });
-
-  /**
-   * Modifica MainApplication.kt y copia archivos nativos después del prebuild.
-   */
-  config = withMainApplication(config, (contents) => {
-    const root = config.projectRoot || process.cwd();
-    const androidDir = path.join(root, 'android');
-    const targetJavaDir = path.join(
-      androidDir,
-      'app',
-      'src',
-      'main',
-      'java',
-      'com',
-      'medsync',
-      'ai',
-      'alarm'
-    );
-    const targetDrawableDir = path.join(
-      androidDir,
-      'app',
-      'src',
-      'main',
-      'res',
-      'drawable'
-    );
-    const mainAppPath = path.join(
-      androidDir,
-      'app',
-      'src',
-      'main',
-      'java',
-      'com',
-      'medsync',
-      'ai',
-      'MainApplication.kt'
-    );
-
+    // ============ COPIAR ARCHIVOS KOTLIN NATIVOS ============
     try {
-      // Copiar archivos Kotlin nativos al directorio generado
+      const targetJavaDir = path.join(
+        androidDir,
+        'app',
+        'src',
+        'main',
+        'java',
+        'com',
+        'medsync',
+        'ai',
+        'alarm'
+      );
+      const targetDrawableDir = path.join(
+        androidDir,
+        'app',
+        'src',
+        'main',
+        'res',
+        'drawable'
+      );
+
       const kotlinFiles = [
         'AlarmOverlayActivity.kt',
         'AlarmForegroundService.kt',
@@ -174,41 +158,52 @@ function withNativeAlarm(config) {
         console.log('[MedSyncAlarm] Copiado: ic_notification.xml');
       }
 
-      // Modificar MainApplication.kt
-      let nextContents = contents;
+      // Modificar MainApplication.kt directamente desde el sistema de archivos
+      const mainAppPath = path.join(
+        androidDir,
+        'app',
+        'src',
+        'main',
+        'java',
+        'com',
+        'medsync',
+        'ai',
+        'MainApplication.kt'
+      );
 
-      // Agregar import si no existe
-      if (!nextContents.includes('import com.medsync.ai.alarm.AlarmReactPackage')) {
-        nextContents = nextContents.replace(
-          /^import expo\.modules\./m,
-          'import com.medsync.ai.alarm.AlarmReactPackage\n$&'
-        );
-      }
+      if (fs.existsSync(mainAppPath)) {
+        let fileContents = fs.readFileSync(mainAppPath, 'utf8');
 
-      // Agregar add(AlarmReactPackage()) si no existe
-      if (!nextContents.includes('add(AlarmReactPackage())')) {
-        nextContents = nextContents.replace(
-          /(\/\/ Packages that cannot be autolinked yet can be added manually here, for example:\n)(\s*)\/\/ add\(MyReactNativePackage\(\)\)/,
-          '$1$2add(AlarmReactPackage())'
-        );
-        if (!nextContents.includes('add(AlarmReactPackage())')) {
-          nextContents = nextContents.replace(
-            /\/\/ add\(MyReactNativePackage\(\)\)/,
-            'add(AlarmReactPackage())'
+        // Agregar import si no existe
+        if (!fileContents.includes('import com.medsync.ai.alarm.AlarmReactPackage')) {
+          fileContents = fileContents.replace(
+            /^import expo\.modules\./m,
+            'import com.medsync.ai.alarm.AlarmReactPackage\n$&'
           );
         }
-      }
 
-      // Escribir el archivo modificado al sistema de archivos
-      if (fs.existsSync(mainAppPath)) {
-        fs.writeFileSync(mainAppPath, nextContents, 'utf8');
+        // Agregar add(AlarmReactPackage()) si no existe
+        if (!fileContents.includes('add(AlarmReactPackage())')) {
+          fileContents = fileContents.replace(
+            /(\/\/ Packages that cannot be autolinked yet can be added manually here, for example:\n)(\s*)\/\/ add\(MyReactNativePackage\(\)\)/,
+            '$1$2add(AlarmReactPackage())'
+          );
+          if (!fileContents.includes('add(AlarmReactPackage())')) {
+            fileContents = fileContents.replace(
+              /\/\/ add\(MyReactNativePackage\(\)\)/,
+              'add(AlarmReactPackage())'
+            );
+          }
+        }
+
+        fs.writeFileSync(mainAppPath, fileContents, 'utf8');
         console.log('[MedSyncAlarm] MainApplication.kt modificado');
       }
     } catch (e) {
       console.warn('[MedSyncAlarm] Error injecting native alarm code:', e.message);
     }
 
-    return nextContents;
+    return config;
   });
 
   return config;
