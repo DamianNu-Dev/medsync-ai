@@ -5,11 +5,7 @@ import { Platform, StyleSheet, Vibration, View } from 'react-native';
 
 import { colors, radius, spacing } from '@/constants/theme';
 import { configurePlayer } from '@/lib/audio';
-import {
-  openFullScreenAlarmSettings,
-  scheduleTestAlarmNotification,
-} from '@/lib/notifications';
-import { supportsFullScreenAlarm } from '@/lib/alarmOverlay';
+import { scheduleTestAlarmNotification } from '@/lib/notifications';
 import { useApp } from '@/store/AppProvider';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
@@ -98,16 +94,6 @@ export function AlarmTestButtons() {
           onPress={() => void notifyLater()}
         />
       </View>
-      {Platform.OS === 'android' && supportsFullScreenAlarm() ? (
-        <Button
-          label="Permitir alarma sobre otras apps"
-          icon="phone-portrait-outline"
-          variant="ghost"
-          size="sm"
-          fullWidth
-          onPress={() => void openFullScreenAlarmSettings()}
-        />
-      ) : null}
     </View>
   );
 }

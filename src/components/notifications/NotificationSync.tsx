@@ -5,7 +5,6 @@ import {
   ensureExactAlarmPermissionOnce,
   syncDoseNotifications,
 } from '@/lib/notifications';
-import { cancelDisplayedAlarms } from '@/lib/alarmOverlay';
 import { useApp } from '@/store/AppProvider';
 import { useAuth } from '@/store/AuthProvider';
 import { useNotifications } from '@/store/NotificationProvider';
@@ -78,7 +77,6 @@ export function NotificationSync() {
     const timeout = setTimeout(run, 1000);
     const subscription = AppState.addEventListener('change', (status) => {
       if (status !== 'active') return;
-      void cancelDisplayedAlarms();
       void refresh();
       run();
     });
