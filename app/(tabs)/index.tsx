@@ -37,6 +37,24 @@ export default function HomeScreen() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [celebration, setCelebration] = useState<Celebration | null>(null);
 
+  const isCaregiver = state.role === 'caregiver';
+  const linked =
+    !isCaregiver || state.linkedPatientCode === state.profile.caregiverCode;
+
+  if (isCaregiver && !linked) {
+    return (
+      <Screen tab>
+        <EmptyState
+          icon="link-outline"
+          title="Vincula a tu paciente"
+          message="Abre el panel de cuidador e introduce el código para ver sus tomas y alertas."
+          actionLabel="Ir al panel"
+          onAction={() => router.push('/caregiver')}
+        />
+      </Screen>
+    );
+  }
+
   const handleTake = (id: string) => {
     const item = data.actionable.find((dose) => dose.dose.id === id);
     if (!item) return;
@@ -58,12 +76,48 @@ export default function HomeScreen() {
     <Screen tab>
       <FadeInView>
         <GreetingHeader
-          profile={state.profile}
+          profile={
+            isCaregiver
+              ? {
+                  ...state.profile,
+                  name: state.profile.caregiverName || state.profile.name,
+                  firstName:
+                    (state.profile.caregiverName || '').trim().split(/\s+/)[0] ||
+                    'Cuidador',
+                }
+              : state.profile
+          }
           now={now}
           onSettings={() => setSettingsOpen(true)}
           onScan={() => router.push('/scan')}
         />
       </FadeInView>
+
+      {isCaregiver ? (
+        <FadeInView delay={30}>
+          <Card
+            tone="infoSoft"
+            onPress={() => router.push('/caregiver')}
+            style={styles.caregiverBanner}
+            accessibilityLabel={`Ver el panel de ${state.profile.name}`}
+          >
+            <View style={styles.caregiverBannerRow}>
+              <View style={styles.caregiverBannerIcon}>
+                <Ionicons name="people" size={20} color={colors.white} />
+              </View>
+              <View style={styles.caregiverBannerText}>
+                <AppText variant="bodyStrong" color={colors.info}>
+                  Estás viendo a {state.profile.name}
+                </AppText>
+                <AppText variant="caption" color={colors.inkSoft}>
+                  Abre el panel del cuidador para ver alertas y adherencia.
+                </AppText>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.info} />
+            </View>
+          </Card>
+        </FadeInView>
+      ) : null}
 
       {state.role === 'patient' ? (
         <FadeInView delay={40} style={styles.permissionCard}>
@@ -234,6 +288,21 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   section: { marginTop: spacing['2xl'] },
   permissionCard: { marginBottom: spacing.xl },
+  caregiverBanner: { marginBottom: spacing.xl, padding: spacing.md },
+  caregiverBannerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  caregiverBannerIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.md,
+    backgroundColor: colors.info,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  caregiverBannerText: { flex: 1, gap: 1 },
   list: { gap: spacing.md },
   rows: { gap: spacing.sm },
   emptyCard: { paddingBottom: spacing.xl },

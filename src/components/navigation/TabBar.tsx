@@ -27,7 +27,12 @@ export function TabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
 
   const visible = state.routes.filter((route) => {
     if (appState.role === 'caregiver') {
-      return route.name === 'caregiver' || route.name === 'treatments' || route.name === 'assistant';
+      return (
+        route.name === 'index' ||
+        route.name === 'caregiver' ||
+        route.name === 'treatments' ||
+        route.name === 'assistant'
+      );
     }
     return true;
   });

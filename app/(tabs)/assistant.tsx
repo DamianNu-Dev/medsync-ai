@@ -9,6 +9,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -53,6 +54,35 @@ export default function AssistantScreen() {
   const [typing, setTyping] = useState(false);
   const [clearOpen, setClearOpen] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  // Altura que reporta Android al abrir el teclado.
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const window = useWindowDimensions();
+  // Alto de la ventana con el teclado cerrado: si Android redimensiona la
+  // pantalla (adjustResize), no hay que empujar el compositor manualmente.
+  const [baselineWindowHeight] = useState(() => window.height);
+  const keyboardGap =
+    keyboardVisible && Platform.OS === 'android'
+      ? Math.max(
+          0,
+          Math.round(
+            keyboardHeight -
+              Math.max(0, baselineWindowHeight - window.height),
+          ),
+        )
+      : 0;
+
+  // Espacio inferior del compositor:
+  // - Teclado cerrado: deja libre la barra de pestañas flotante.
+  // - Android sin redimensionar: sube el alto del teclado.
+  // - Android redimensionado: la barra sigue visible sobre el teclado.
+  // - iOS: el KeyboardAvoidingView ya hace el desplazamiento.
+  const composerBottomSpace = !keyboardVisible
+    ? insets.bottom + 94
+    : Platform.OS === 'ios'
+      ? spacing.md
+      : keyboardGap > 0
+        ? keyboardGap + spacing.sm
+        : insets.bottom + 94;
 
   const dashboard = useMemo(() => getDashboardData(state, now), [state, now]);
 
@@ -87,13 +117,30 @@ export default function AssistantScreen() {
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
     const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-    const show = Keyboard.addListener(showEvent, () => setKeyboardVisible(true));
-    const hide = Keyboard.addListener(hideEvent, () => setKeyboardVisible(false));
+    const show = Keyboard.addListener(showEvent, (event) => {
+      setKeyboardVisible(true);
+      if (Platform.OS === 'android') {
+        setKeyboardHeight(event.endCoordinates?.height ?? 0);
+      }
+    });
+    const hide = Keyboard.addListener(hideEvent, () => {
+      setKeyboardVisible(false);
+      setKeyboardHeight(0);
+    });
     return () => {
       show.remove();
       hide.remove();
     };
   }, []);
+
+  // Al abrir el teclado, mantener visible el final de la conversación.
+  useEffect(() => {
+    if (!keyboardVisible) return;
+    const timer = setTimeout(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [keyboardVisible, keyboardGap]);
 
   const sendMessage = async (raw: string) => {
     const text = raw.trim();
@@ -244,7 +291,9 @@ export default function AssistantScreen() {
         <View
           style={[
             styles.composer,
-            { paddingBottom: keyboardVisible ? spacing.md : insets.bottom + 94 },
+            {
+              paddingBottom: composerBottomSpace,
+            },
           ]}
         >
           <ChatComposer
