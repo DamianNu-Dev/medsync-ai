@@ -136,23 +136,22 @@ export function PillVerifyModal({
               ) : null}
             </View>
           ) : permission?.granted ? (
-            <View style={styles.preview}>
+            <View style={styles.cameraContainer}>
               <CameraView
                 ref={cameraRef}
                 style={styles.image}
                 facing="front"
                 mute
-              >
-                <View style={styles.frame}>
-                  <View style={styles.faceGuide} />
-                  <View style={styles.hintPill}>
-                    <Ionicons name="scan-outline" size={14} color={colors.white} />
-                    <AppText variant="caption" color={colors.white} weight="semibold">
-                      Boca abierta y pastilla visible
-                    </AppText>
-                  </View>
+              />
+              <View style={styles.frame}>
+                <View style={styles.faceGuide} />
+                <View style={styles.hintPill}>
+                  <Ionicons name="scan-outline" size={14} color={colors.white} />
+                  <AppText variant="caption" color={colors.white} weight="semibold">
+                    Boca abierta y pastilla visible
+                  </AppText>
                 </View>
-              </CameraView>
+              </View>
             </View>
           ) : (
             <Card style={styles.permissionCard}>
@@ -279,8 +278,16 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: '#081512',
   },
+  cameraContainer: {
+    flex: 1,
+    minHeight: 320,
+    borderRadius: radius.xl,
+    overflow: 'hidden',
+    backgroundColor: '#081512',
+    position: 'relative',
+  },
   image: { flex: 1, width: '100%' },
-  frame: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  frame: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
   faceGuide: {
     width: '62%',
     height: '58%',

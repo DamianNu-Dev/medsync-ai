@@ -17,6 +17,7 @@ import { colors, radius, spacing } from '@/constants/theme';
 import { formatTime } from '@/lib/date';
 import { successFeedback } from '@/lib/haptics';
 import { useNow } from '@/hooks/useNow';
+import { useAuth } from '@/store/AuthProvider';
 import { useApp } from '@/store/AppProvider';
 import { getDashboardData } from '@/store/selectors';
 import { AppText } from '@/components/ui/AppText';
@@ -27,6 +28,7 @@ const ALARM_WINDOW_MINUTES = 120;
 
 export function DoseAlarm() {
   const { state, actions } = useApp();
+  const { mode } = useAuth();
   const now = useNow(5_000);
   const [verifyOpen, setVerifyOpen] = useState(false);
   const [completed, setCompleted] = useState<{
@@ -36,6 +38,9 @@ export function DoseAlarm() {
   const player = useAudioPlayer(require('../../../assets/alarm.wav'));
   const successTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const alarmReadyRef = useRef(false);
+  const [alarmBlocked, setAlarmBlocked] = useState(false);
+
+  const isAuthenticated = mode === 'account' || mode === 'local';
 
   const data = useMemo(() => getDashboardData(state, now), [state, now]);
 
@@ -47,21 +52,27 @@ export function DoseAlarm() {
   }, [data.actionable, now]);
 
   const active =
+    isAuthenticated &&
     state.roleChosen &&
     state.role === 'patient' &&
     state.alarmEnabled &&
     Boolean(target) &&
     !completed &&
-    alarmReadyRef.current;
+    alarmReadyRef.current &&
+    !alarmBlocked;
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      setAlarmBlocked(true);
+      return;
+    }
     // Pequeño retraso antes de activar la alarma al cargar la app
     // para que el usuario vea la pantalla primero
     const timer = setTimeout(() => {
       alarmReadyRef.current = true;
     }, 3000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (!active) {

@@ -17,14 +17,24 @@ const VALID_GROQ_MODELS = [
   'allam-2-7b',
 ];
 
+const DEFAULT_MODEL = 'qwen/qwen3.8-27b';
+const DEFAULT_VISION_MODEL = 'qwen/qwen3.8-27b';
+
 function isValidGroqModel(model: string): boolean {
-  return VALID_GROQ_MODELS.includes(model) || model.startsWith('meta-llama/');
+  if (!model || model.trim().length === 0) return false;
+  const m = model.trim().toLowerCase();
+  // Rechazar modelos que ya no existen o dan error
+  if (m.includes('meta-llama')) return false;
+  if (m.includes('llama-4-scout')) return false;
+  if (m.includes('llama-3.3-70b-versatile')) return false;
+  if (m.includes('mixtral')) return false;
+  if (m.includes('gemma')) return false;
+  return VALID_GROQ_MODELS.includes(m) || m.startsWith('meta-llama/');
 }
 
 function fixInvalidModel(model: string): string {
-  if (isValidGroqModel(model)) return model;
-  // Si el modelo no es válido, usar el por defecto
-  return 'qwen/qwen3.8-27b';
+  if (isValidGroqModel(model)) return model.trim();
+  return DEFAULT_MODEL;
 }
 
 export function defaultAISettings(): AISettings {
@@ -34,9 +44,9 @@ export function defaultAISettings(): AISettings {
       '',
     ),
     apiKey: process.env.EXPO_PUBLIC_AI_API_KEY ?? '',
-    model: process.env.EXPO_PUBLIC_AI_MODEL ?? 'qwen/qwen3.8-27b',
+    model: process.env.EXPO_PUBLIC_AI_MODEL ?? DEFAULT_MODEL,
     visionModel:
-      process.env.EXPO_PUBLIC_AI_VISION_MODEL ?? 'qwen/qwen3.8-27b',
+      process.env.EXPO_PUBLIC_AI_VISION_MODEL ?? DEFAULT_VISION_MODEL,
   };
 }
 
@@ -59,7 +69,7 @@ export async function loadAISettings(): Promise<AISettings | null> {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<AISettings>;
     if (!parsed || typeof parsed !== 'object') return null;
-    // Los valores guardados sobrescriben los defaults, pero se validan
+    // Los valores guardados sobrescriben los defaults, pero se validan y se limpian modelos inválidos
     return normalize({ ...defaultAISettings(), ...parsed });
   } catch {
     return null;
