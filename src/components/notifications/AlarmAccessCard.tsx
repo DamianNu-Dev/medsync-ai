@@ -120,6 +120,15 @@ export function AlarmAccessCard({
         </View>
       </View>
 
+      {!allOk && pending.length > 0 ? (
+        <Button
+          label={`Activar paso ${rows.length - pending.length + 1} de ${rows.length}`}
+          icon="arrow-forward-circle-outline"
+          fullWidth
+          onPress={() => void pending[0].action()}
+        />
+      ) : null}
+
       <View style={styles.rows}>
         {visible.map((row) => (
           <View key={row.key} style={styles.row}>
