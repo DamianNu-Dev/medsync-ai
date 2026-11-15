@@ -90,7 +90,7 @@
       "expo-asset",
       "expo-secure-store",
       "expo-build-properties",
-      "./plugins/withNativeAlarm"
+      "./plugins/withFullScreenAlarm"
     ],
     "experiments": {
       "typedRoutes": false

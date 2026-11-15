@@ -10,6 +10,7 @@ import {
 import { Linking, Platform } from 'react-native';
 
 import { isExpoGo } from '@/lib/environment';
+import { isNativeAlarmAvailable } from '@/lib/nativeAlarm';
 import { Dose, Treatment } from '@/types';
 
 const CHANNEL_ID = 'medsync-alarm';
@@ -232,6 +233,19 @@ export async function syncDoseNotifications(
   options: { requestPermission?: boolean } = {},
 ): Promise<number> {
   if (Platform.OS === 'web') return 0;
+
+  // En la app instalada de Android las alarmas las programa el módulo nativo
+  // (`modules/alarm-overlay`), que sobrevive a cerrar la app y muestra el aviso
+  // a pantalla completa. Se cancelan las notificaciones de Expo para que no
+  // suenen dos veces.
+  if (Platform.OS === 'android' && isNativeAlarmAvailable) {
+    try {
+      await Notifications.cancelAllScheduledNotificationsAsync();
+    } catch {
+      // Sin efecto.
+    }
+    return 0;
+  }
 
   let permission = await getNotificationPermissionState();
   if (permission.status !== 'granted' && options.requestPermission) {

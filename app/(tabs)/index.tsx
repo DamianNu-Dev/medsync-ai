@@ -19,6 +19,7 @@ import { GreetingHeader } from '@/components/dashboard/GreetingHeader';
 import { LowStockBanner } from '@/components/dashboard/LowStockBanner';
 import { ProfileSheet } from '@/components/dashboard/ProfileSheet';
 import { SummaryHero } from '@/components/dashboard/SummaryHero';
+import { AlarmAccessCard } from '@/components/notifications/AlarmAccessCard';
 import { NotificationPermissionCard } from '@/components/notifications/NotificationPermissionCard';
 import { DoseCard } from '@/components/medication/DoseCard';
 import { DoseRow } from '@/components/medication/DoseRow';
@@ -122,6 +123,7 @@ export default function HomeScreen() {
       {state.role === 'patient' ? (
         <FadeInView delay={40} style={styles.permissionCard}>
           <NotificationPermissionCard compact />
+          <AlarmAccessCard compact />
         </FadeInView>
       ) : null}
 

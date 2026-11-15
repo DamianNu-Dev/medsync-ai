@@ -5,6 +5,7 @@ import { Platform, StyleSheet, Vibration, View } from 'react-native';
 
 import { colors, radius, spacing } from '@/constants/theme';
 import { configurePlayer } from '@/lib/audio';
+import { NativeAlarm } from '@/lib/nativeAlarm';
 import { scheduleTestAlarmNotification } from '@/lib/notifications';
 import { useApp } from '@/store/AppProvider';
 import { AppText } from '@/components/ui/AppText';
@@ -12,17 +13,22 @@ import { Button } from '@/components/ui/Button';
 
 /**
  * Botones para comprobar que el teléfono realmente suena y vibra.
- * El aviso programado sirve para probar con la pantalla bloqueada.
+ *
+ * El aviso de 10 segundos y la alarma completa sirven para probar con la
+ * pantalla bloqueada y con otra app (o un juego) abierta.
  */
 export function AlarmTestButtons() {
   const { actions } = useApp();
   const player = useAudioPlayer(require('../../../assets/alarm.wav'));
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const resetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [playing, setPlaying] = useState(false);
+  const [testScheduled, setTestScheduled] = useState(false);
 
   useEffect(
     () => () => {
       if (timerRef.current) clearTimeout(timerRef.current);
+      if (resetRef.current) clearTimeout(resetRef.current);
       Vibration.cancel();
     },
     [],
@@ -65,6 +71,38 @@ export function AlarmTestButtons() {
     );
   };
 
+  const nativeAlarmLater = async () => {
+    if (!NativeAlarm.available) {
+      actions.showToast(
+        'La alarma nativa solo está en la app instalada, no en Expo Go.',
+        'error',
+      );
+      return;
+    }
+    if (testScheduled) {
+      await NativeAlarm.cancelTestAlarm();
+      setTestScheduled(false);
+      if (resetRef.current) clearTimeout(resetRef.current);
+      actions.showToast('Alarma de prueba cancelada.', 'info');
+      return;
+    }
+    const scheduled = await NativeAlarm.scheduleTestAlarm(10);
+    if (!scheduled) {
+      actions.showToast(
+        'No se pudo programar. Revisa los permisos de alarma.',
+        'error',
+      );
+      return;
+    }
+    setTestScheduled(true);
+    if (resetRef.current) clearTimeout(resetRef.current);
+    resetRef.current = setTimeout(() => setTestScheduled(false), 40_000);
+    actions.showToast(
+      'Alarma completa en 10 segundos. Bloquea el teléfono o abre otra app para verla encima.',
+      'success',
+    );
+  };
+
   return (
     <View style={styles.card}>
       <View style={styles.header}>
@@ -72,8 +110,8 @@ export function AlarmTestButtons() {
           <Ionicons name="volume-high-outline" size={18} color={colors.primary} />
         </View>
         <AppText variant="caption" color={colors.inkSoft} style={styles.text}>
-          Comprueba que el teléfono suena y vibra. El aviso de 10 segundos también
-          funciona con la pantalla bloqueada.
+          Comprueba que el teléfono suena y vibra. El aviso y la alarma completa
+          también funcionan con la pantalla bloqueada y sobre otras apps.
         </AppText>
       </View>
       <View style={styles.actions}>
@@ -94,6 +132,20 @@ export function AlarmTestButtons() {
           onPress={() => void notifyLater()}
         />
       </View>
+      {Platform.OS === 'android' && NativeAlarm.available ? (
+        <Button
+          label={
+            testScheduled
+              ? 'Cancelar alarma completa'
+              : 'Alarma completa en 10 s'
+          }
+          icon={testScheduled ? 'close-circle-outline' : 'alarm-outline'}
+          variant={testScheduled ? 'ghost' : 'outline'}
+          size="sm"
+          fullWidth
+          onPress={() => void nativeAlarmLater()}
+        />
+      ) : null}
     </View>
   );
 }

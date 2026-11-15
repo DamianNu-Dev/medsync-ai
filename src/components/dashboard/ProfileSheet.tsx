@@ -13,6 +13,7 @@ import { BrandMark } from '@/components/ui/BrandMark';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Sheet } from '@/components/ui/Sheet';
+import { AlarmAccessCard } from '@/components/notifications/AlarmAccessCard';
 import { NotificationPermissionCard } from '@/components/notifications/NotificationPermissionCard';
 import { RoleSheet } from '@/components/roles/RoleSheet';
 
@@ -155,6 +156,7 @@ export function ProfileSheet({ visible, onClose }: ProfileSheetProps) {
         </View>
 
         <NotificationPermissionCard showWhenGranted />
+        <AlarmAccessCard showWhenGranted />
 
         <View style={styles.disclaimer}>
           <Ionicons name="information-circle-outline" size={18} color={colors.inkMuted} />

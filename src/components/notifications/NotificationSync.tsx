@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 
 import {
   ensureExactAlarmPermissionOnce,
   syncDoseNotifications,
 } from '@/lib/notifications';
+import { NativeAlarm, NativeScheduledAlarm } from '@/lib/nativeAlarm';
 import { useApp } from '@/store/AppProvider';
 import { useAuth } from '@/store/AuthProvider';
 import { useNotifications } from '@/store/NotificationProvider';
@@ -93,6 +94,60 @@ export function NotificationSync() {
     state.doses,
     state.treatments,
   ]);
+
+  // Alarmas exactas del sistema (módulo nativo). No dependen del permiso de
+  // notificaciones: suenan aunque la app esté cerrada y abren el aviso a
+  // pantalla completa por encima de cualquier otra aplicación.
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    if (!isPatient) {
+      void NativeAlarm.cancelAlarms();
+      return;
+    }
+
+    let cancelled = false;
+
+    const run = () => {
+      if (cancelled) return;
+      const treatments = new Map(state.treatments.map((item) => [item.id, item]));
+      const now = Date.now();
+      const alarms: NativeScheduledAlarm[] = state.doses
+        .filter((dose) => dose.status === 'pending')
+        .map((dose) => {
+          const treatment = treatments.get(dose.treatmentId);
+          if (!treatment?.active) return null;
+          const at = new Date(dose.scheduledAt).getTime();
+          if (!Number.isFinite(at) || at <= now) return null;
+          const units = treatment.unitsPerDose;
+          return {
+            id: dose.id,
+            at,
+            doseId: dose.id,
+            treatmentId: treatment.id,
+            name: treatment.name,
+            strength: treatment.strength,
+            doseLabel: `${units} ${units === 1 ? 'unidad' : 'unidades'}`,
+          };
+        })
+        .filter((alarm): alarm is NativeScheduledAlarm => alarm !== null)
+        .sort((a, b) => a.at - b.at)
+        .slice(0, 300);
+
+      void NativeAlarm.scheduleAlarms(alarms);
+    };
+
+    const timeout = setTimeout(run, 900);
+    const subscription = AppState.addEventListener('change', (status) => {
+      if (status === 'active') run();
+    });
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+      subscription.remove();
+    };
+  }, [isPatient, state.doses, state.treatments]);
 
   return null;
 }

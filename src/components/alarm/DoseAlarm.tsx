@@ -3,6 +3,7 @@ import { setAudioModeAsync, useAudioPlayer } from 'expo-audio';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  AppState,
   BackHandler,
   Linking,
   Platform,
@@ -67,6 +68,31 @@ export function DoseAlarm() {
   const activeDoseId = target?.dose.id ?? null;
   const activeTreatmentName = target?.treatment.name ?? '';
 
+  // Datos que viajan al servicio nativo (sonido + overlay del sistema).
+  // Se memoizan por valores primitivos para que el efecto no se reinicie cada
+  // vez que cambia el reloj (cada 5 s).
+  const nativeDoseId = target?.dose.id ?? '';
+  const nativeTreatmentId = target?.treatment.id ?? '';
+  const nativeStrength = target?.treatment.strength ?? '';
+  const nativeUnits = target?.treatment.unitsPerDose ?? 0;
+
+  const nativePayload = useMemo(() => {
+    if (!nativeDoseId || !nativeTreatmentId) return null;
+    return {
+      doseId: nativeDoseId,
+      treatmentId: nativeTreatmentId,
+      name: activeTreatmentName,
+      strength: nativeStrength,
+      doseLabel: `${nativeUnits} ${nativeUnits === 1 ? 'unidad' : 'unidades'}`,
+    };
+  }, [
+    activeTreatmentName,
+    nativeDoseId,
+    nativeStrength,
+    nativeTreatmentId,
+    nativeUnits,
+  ]);
+
   // La alarma solo se habilita después del login. Antes se marcaba un bloqueo
   // permanente que la dejaba muda incluso después de iniciar sesión.
   useEffect(() => {
@@ -120,15 +146,14 @@ export function DoseAlarm() {
       // En Expo Go o en la web puede no estar disponible.
     }
 
-    // Iniciar el servicio de foreground nativo para que la alarma siga
-    // sonando aunque el usuario saque la app de segundos plano o bloquee el teléfono.
-    if (Platform.OS === 'android') {
-      void NativeAlarm.startForegroundAlarm(
-        activeDoseId,
-        target?.treatment.id ?? '',
-        target?.treatment.name ?? '',
-        target?.treatment.strength ?? '',
-      );
+    // Iniciar el servicio nativo de foreground para que la alarma siga
+    // sonando aunque el usuario saque la app de segundo plano o bloquee el
+    // teléfono. El aviso sobre otras apps solo se pinta cuando la app deja de
+    // estar visible; con la app abierta se usa esta pantalla.
+    if (Platform.OS === 'android' && nativePayload) {
+      void NativeAlarm.startAlarm(nativePayload, {
+        showUi: AppState.currentState !== 'active',
+      });
     }
 
     try {
@@ -153,7 +178,58 @@ export function DoseAlarm() {
       }
       Vibration.cancel();
     };
-  }, [active, activeDoseId, activeTreatmentName, player]);
+  }, [active, activeDoseId, activeTreatmentName, nativePayload, player]);
+
+  // Al salir de la app el overlay nativo toma el control; al volver se quita
+  // para que la persona vea la pantalla de verificación de MedSync. El audio de
+  // React Native se pausa en segundo plano para que no suenen dos pistas.
+  useEffect(() => {
+    if (Platform.OS !== 'android' || !active || !nativePayload) return;
+    const subscription = AppState.addEventListener('change', (next) => {
+      const visible = next === 'active';
+      void NativeAlarm.startAlarm(nativePayload, { showUi: !visible });
+      try {
+        if (visible) {
+          configurePlayer(player, { loop: true, volume: 1, restart: true });
+          player.play();
+          Vibration.vibrate([0, 700, 300, 700], true);
+        } else {
+          player.pause();
+          Vibration.cancel();
+        }
+      } catch {
+        // El reproductor puede no estar disponible.
+      }
+    });
+    return () => subscription.remove();
+  }, [active, nativePayload, player]);
+
+  // Si no hay ninguna toma pendiente (por ejemplo, ya se registró en otro
+  // dispositivo) se apaga el servicio nativo para que no siga sonando.
+  useEffect(() => {
+    if (Platform.OS !== 'android' || active || completed) return;
+
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const scheduleCheck = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        void NativeAlarm.isAlarmRunning().then((running) => {
+          if (running) void NativeAlarm.stopAlarm();
+        });
+      }, 6000);
+    };
+
+    scheduleCheck();
+    const subscription = AppState.addEventListener('change', (next) => {
+      if (next === 'active') scheduleCheck();
+    });
+
+    return () => {
+      if (timer) clearTimeout(timer);
+      subscription.remove();
+    };
+  }, [active, completed]);
 
   useEffect(() => {
     if (!active || Platform.OS !== 'android') return;
@@ -181,9 +257,9 @@ export function DoseAlarm() {
 
   const handleVerified = () => {
     if (!target) return;
-    // Detener el servicio de foreground nativo al verificar la dosis.
+    // Detener el sonido, la vibración y el overlay nativo al verificar.
     if (Platform.OS === 'android') {
-      void NativeAlarm.stopForegroundAlarm();
+      void NativeAlarm.stopAlarm();
     }
     setVerifyOpen(false);
     setCompleted({
