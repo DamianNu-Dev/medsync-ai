@@ -9,6 +9,18 @@ export interface AISettings {
 
 const STORAGE_KEY = '@medsync-ai/ai-settings/v1';
 
+/**
+ * Claves de respaldo (separadas por comas) que se prueban en orden cuando la
+ * principal falla o se queda sin cuota. Se inyectan en tiempo de compilación
+ * desde EAS; nunca se escriben en el repositorio.
+ */
+export const AI_FALLBACK_KEYS: string[] = (
+  (process.env.EXPO_PUBLIC_AI_FALLBACK_KEY as string | undefined) ?? ''
+)
+  .split(',')
+  .map((key: string) => key.trim())
+  .filter((key: string) => key.length > 0);
+
 // Modelos válidos disponibles en Groq (verificado en la API)
 const VALID_GROQ_MODELS = [
   'qwen/qwen3.8-27b',

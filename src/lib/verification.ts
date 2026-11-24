@@ -1,3 +1,4 @@
+import { chatCompletion } from '@/lib/aiRequest';
 import { AISettings } from '@/lib/aiSettings';
 
 export interface VisualVerificationResult {
@@ -42,65 +43,42 @@ export async function verifyPillInMouth(
     throw new Error('No se pudo conectar con el servicio de verificación.');
   }
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 40_000);
+  const result = await chatCompletion(
+    settings,
+    {
+      model: settings.visionModel,
+      temperature: 0,
+      max_tokens: 250,
+      messages: [
+        { role: 'system', content: VERIFY_PROMPT },
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: 'Verifica si la persona tiene una pastilla visible en la boca.',
+            },
+            {
+              type: 'image_url',
+              image_url: { url: `data:${mimeType};base64,${base64}` },
+            },
+          ],
+        },
+      ],
+    },
+    40_000,
+  );
 
-  try {
-    const response = await fetch(`${settings.baseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${settings.apiKey}`,
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
-        model: settings.visionModel,
-        temperature: 0,
-        max_tokens: 250,
-        messages: [
-          { role: 'system', content: VERIFY_PROMPT },
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: 'Verifica si la persona tiene una pastilla visible en la boca.',
-              },
-              {
-                type: 'image_url',
-                image_url: { url: `data:${mimeType};base64,${base64}` },
-              },
-            ],
-          },
-        ],
-      }),
-    });
-
-    const payload = (await response.json()) as {
-      choices?: { message?: { content?: string } }[];
-      error?: { message?: string };
-    };
-
-    if (!response.ok) {
-      throw new Error(payload.error?.message ?? `Error ${response.status}`);
-    }
-
-    const content = payload.choices?.[0]?.message?.content;
-    if (!content) throw new Error('La verificación llegó vacía.');
-
-    const parsed = extractJson(content) as Record<string, unknown>;
-    const confidence = Math.min(1, Math.max(0, Number(parsed.confidence) || 0));
-    return {
-      verified: parsed.verified === true && confidence >= 0.5,
-      confidence,
-      reason:
-        typeof parsed.reason === 'string' && parsed.reason.trim().length > 0
-          ? parsed.reason.trim()
-          : parsed.verified
-            ? 'La pastilla se ve en la boca.'
-            : 'No se pudo confirmar que la pastilla esté en la boca.',
-    };
-  } finally {
-    clearTimeout(timeout);
-  }
+  const parsed = extractJson(result.content) as Record<string, unknown>;
+  const confidence = Math.min(1, Math.max(0, Number(parsed.confidence) || 0));
+  return {
+    verified: parsed.verified === true && confidence >= 0.5,
+    confidence,
+    reason:
+      typeof parsed.reason === 'string' && parsed.reason.trim().length > 0
+        ? parsed.reason.trim()
+        : parsed.verified
+          ? 'La pastilla se ve en la boca.'
+          : 'No se pudo confirmar que la pastilla esté en la boca.',
+  };
 }

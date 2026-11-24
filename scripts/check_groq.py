@@ -114,13 +114,19 @@ def main() -> int:
             value = headers.get(name)
             if value:
                 print(f"    {name}: {value}")
-        if "x-ratelimit-remaining-requests" in headers and "x-ratelimit-remaining-tokens" in headers:
+        if "x-ratelimit-remaining-requests" in headers:
             try:
                 requests_left = int(headers["x-ratelimit-remaining-requests"])
-                tokens_left = int(headers["x-ratelimit-remaining-tokens"])
+                # El plan gratuito permite 200K tokens/día para este modelo.
+                # Las cabeceras solo publican RPD y TPM, así que el tope diario
+                # de tokens se toma de la documentación de Groq.
+                tokens_por_dia = 200_000
+                chats = min(requests_left, tokens_por_dia // TOKENS_POR_CHAT)
+                vision = min(requests_left, tokens_por_dia // TOKENS_POR_VISION)
                 print(
-                    "  ESTIMACIÓN (plan gratuito, 200K tokens/día por organización): "
-                    f"~{requests_left} chats/día o ~{tokens_left // TOKENS_POR_VISION} verificaciones/día"
+                    "  ESTIMACIÓN HOY: "
+                    f"{requests_left} peticiones disponibles · ~{chats} chats o ~{vision} verificaciones "
+                    "(200K tokens/día del plan gratuito)"
                 )
             except ValueError:
                 pass

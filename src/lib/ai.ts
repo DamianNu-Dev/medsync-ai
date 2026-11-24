@@ -1,4 +1,5 @@
 import { EMERGENCY_HINT } from '@/constants/config';
+import { AIRequestError, chatCompletion } from '@/lib/aiRequest';
 import { AISettings, hasAIConfig } from '@/lib/aiSettings';
 import { stockNoun } from '@/constants/medication';
 import { ChatMessage, MedicationForm } from '@/types';
@@ -101,40 +102,17 @@ export async function sendChatMessage(
     throw new Error('IA_NO_CONFIGURADA');
   }
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 25_000);
-
-  try {
-    const response = await fetch(`${settings.baseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${settings.apiKey}`,
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
-        model: settings.model,
-        temperature: 0.35,
-        max_tokens: 420,
-        messages: apiMessages(history, context),
-      }),
-    });
-
-    const payload = (await response.json()) as {
-      choices?: { message?: { content?: string } }[];
-      error?: { message?: string };
-    };
-
-    if (!response.ok) {
-      throw new Error(payload.error?.message ?? `Error ${response.status}`);
-    }
-
-    const content = payload.choices?.[0]?.message?.content?.trim();
-    if (!content) throw new Error('La respuesta llegó vacía.');
-    return content;
-  } finally {
-    clearTimeout(timeout);
-  }
+  const result = await chatCompletion(
+    settings,
+    {
+      model: settings.model,
+      temperature: 0.35,
+      max_tokens: 420,
+      messages: apiMessages(history, context),
+    },
+    25_000,
+  );
+  return result.content;
 }
 
 /**
@@ -146,18 +124,10 @@ export async function testAIConnection(settings: AISettings): Promise<string> {
     throw new Error('La clave de API no está configurada.');
   }
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 20_000);
-
   try {
-    const response = await fetch(`${settings.baseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${settings.apiKey}`,
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
+    const result = await chatCompletion(
+      settings,
+      {
         model: settings.model,
         temperature: 0,
         max_tokens: 20,
@@ -167,29 +137,21 @@ export async function testAIConnection(settings: AISettings): Promise<string> {
             content: 'Responde únicamente con estas dos palabras: conexión exitosa.',
           },
         ],
-      }),
-    });
-
-    const payload = (await response.json()) as {
-      choices?: { message?: { content?: string } }[];
-      error?: { message?: string };
-    };
-
-    if (!response.ok) {
-      if (response.status === 401) {
+      },
+      20_000,
+    );
+    return result.content;
+  } catch (error) {
+    if (error instanceof AIRequestError) {
+      if (error.status === 401) {
         throw new Error('La clave de API no es válida (error 401).');
       }
-      if (response.status === 404) {
+      if (error.status === 404) {
         throw new Error('La URL o el modelo no existen (error 404). Revisa ambos campos.');
       }
-      throw new Error(payload.error?.message ?? `El proveedor respondió ${response.status}.`);
+      throw new Error(error.message);
     }
-
-    const content = payload.choices?.[0]?.message?.content?.trim();
-    if (!content) throw new Error('La prueba llegó vacía. Revisa el modelo de texto.');
-    return content;
-  } finally {
-    clearTimeout(timeout);
+    throw error;
   }
 }
 

@@ -1,3 +1,4 @@
+import { chatCompletion } from '@/lib/aiRequest';
 import { AISettings, hasAIConfig } from '@/lib/aiSettings';
 import {
   ExtractedMedication,
@@ -234,53 +235,31 @@ export async function analyzePrescription(
     );
   }
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 40_000);
+  const result = await chatCompletion(
+    settings,
+    {
+      model: settings.visionModel,
+      temperature: 0.1,
+      max_tokens: 1600,
+      messages: [
+        { role: 'system', content: VISION_PROMPT },
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: 'Extrae TODOS los medicamentos de esta receta médica y devuelve solo el JSON solicitado.',
+            },
+            {
+              type: 'image_url',
+              image_url: { url: `data:${mimeType};base64,${base64}` },
+            },
+          ],
+        },
+      ],
+    },
+    40_000,
+  );
 
-  try {
-    const response = await fetch(`${settings.baseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${settings.apiKey}`,
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
-        model: settings.visionModel,
-        temperature: 0.1,
-        max_tokens: 1600,
-        messages: [
-          { role: 'system', content: VISION_PROMPT },
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: 'Extrae TODOS los medicamentos de esta receta médica y devuelve solo el JSON solicitado.',
-              },
-              {
-                type: 'image_url',
-                image_url: { url: `data:${mimeType};base64,${base64}` },
-              },
-            ],
-          },
-        ],
-      }),
-    });
-
-    const payload = (await response.json()) as {
-      choices?: { message?: { content?: string } }[];
-      error?: { message?: string };
-    };
-
-    if (!response.ok) {
-      throw new Error(payload.error?.message ?? `Error ${response.status}`);
-    }
-
-    const content = payload.choices?.[0]?.message?.content;
-    if (!content) throw new Error('La IA no devolvió contenido.');
-    return normalizeExtraction(extractJson(content));
-  } finally {
-    clearTimeout(timeout);
-  }
+  return normalizeExtraction(extractJson(result.content));
 }
