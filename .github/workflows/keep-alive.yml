@@ -1,0 +1,37 @@
+name: keep-alive (Render + Supabase)
+
+# Render despierte gratis se duerme tras ~15 min sin peticiones y Supabase
+# pausa proyectos gratuitos tras 7 días inactivos. Un ping cada 10 minutos
+# mantiene ambos servicios despiertos.
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Despertar y comprobar Render
+        run: |
+          echo "Render: $(date -u +%FT%TZ)"
+          code=$(curl -sS -o /tmp/render-health.json -w '%{http_code}' --max-time 90 \
+            https://medsync-ai-3.onrender.com/api/health || true)
+          echo "HTTP $code"
+          cat /tmp/render-health.json 2>/dev/null || true
+          test "$code" = "200"
+
+      - name: Comprobar Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          echo "Supabase: $(date -u +%FT%TZ)"
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 45 \
+            -H "apikey: $SUPABASE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_KEY" \
+            "$SUPABASE_URL/rest/v1/" || true)
+          echo "HTTP $code"
+          test "$code" = "200"
